@@ -16,7 +16,7 @@ import re
 import sys
 import threading
 import webbrowser
-from datetime import datetime
+from datetime import date, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
@@ -27,16 +27,46 @@ ROOT = Path(__file__).resolve().parent
 SENTENCES = ROOT / "sentences"
 COMBINED = ROOT / "all_sentences.md"
 HOST, PORT = "127.0.0.1", 8765
+PROGRESS = SENTENCES / ".progress.json"  # {"days": {"2026-10-08": 12, ...}}: sentences added per day
 MAX_BYTES = 1_000_000
 LOCK = threading.Lock()
+_grammar = (None, None)  # (mtime of grammar.json, parsed items)
 
 
 def load_grammar():
-    items = json.loads((ROOT / "grammar.json").read_text(encoding="utf-8"))
-    for g in items:
-        safe = re.sub(r'[\\/:*?"<>|\s]+', "_", g["title"]).strip("_")
-        g["file"] = f'{g["id"]:03d}_{safe}.txt'
-    return items
+    """grammar.json, re-read only when the file changes (it's ~700 KB, and every autosave asks for it)."""
+    global _grammar
+    path = ROOT / "grammar.json"
+    mtime = path.stat().st_mtime_ns
+    if _grammar[0] != mtime:
+        items = json.loads(path.read_text(encoding="utf-8"))
+        for g in items:
+            safe = re.sub(r'[\\/:*?"<>|\s]+', "_", g["title"]).strip("_")
+            g["file"] = f'{g["id"]:03d}_{safe}.txt'
+        _grammar = (mtime, items)
+    return _grammar[1]
+
+
+def sentence_count(text):
+    """A sentence is a line with at least 3 characters. Keep in sync with count() in index.html."""
+    return sum(1 for ln in text.splitlines() if len(ln.strip()) >= 3)
+
+
+def load_progress():
+    try:
+        days = json.loads(PROGRESS.read_text(encoding="utf-8")).get("days", {})
+        return days if isinstance(days, dict) else {}
+    except (OSError, ValueError, AttributeError):
+        return {}
+
+
+def add_to_today(delta):
+    """Net sentences written today (deleting one you wrote today takes it back off). Caller holds LOCK."""
+    days = load_progress()
+    today = date.today().isoformat()
+    days[today] = max(0, int(days.get(today, 0)) + delta)
+    write_atomic(PROGRESS, json.dumps({"days": days}, indent=0, sort_keys=True))
+    return today, days[today]
 
 
 def write_atomic(path, text):
@@ -113,6 +143,8 @@ class Handler(BaseHTTPRequestHandler):
                 if p.exists():
                     out[str(g["id"])] = p.read_text(encoding="utf-8")
             return self._json(out)
+        if path == "/api/stats":
+            return self._json({"day": date.today().isoformat(), "days": load_progress()})
         self._send(404, b"not found")
 
     def do_POST(self):
@@ -158,12 +190,18 @@ class Handler(BaseHTTPRequestHandler):
 
         with LOCK:
             path = SENTENCES / g["file"]
+            before = sentence_count(path.read_text(encoding="utf-8")) if path.exists() else 0
             if text or path.exists():  # don't create empty files
                 write_atomic(path, text)
                 rebuild_combined(items)
-        n = sum(1 for ln in text.splitlines() if ln.strip())
-        print(f'{datetime.now():%H:%M:%S}  saved  sentences/{g["file"]}  ({n} lines)', flush=True)
-        self._json({"ok": True, "file": g["file"]})
+            n = sentence_count(text)
+            if n != before:
+                day, today = add_to_today(n - before)
+            else:
+                day = date.today().isoformat()
+                today = load_progress().get(day, 0)
+        print(f'{datetime.now():%H:%M:%S}  saved  sentences/{g["file"]}  ({n} sentences, {today} today)', flush=True)
+        self._json({"ok": True, "file": g["file"], "day": day, "today": today})
 
 
 def main():

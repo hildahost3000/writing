@@ -4,6 +4,7 @@ A small local web app for studying JLPT N2 grammar by writing your own sentences
 
 - **212 grammar points** with **2,494 example sentences** and English translations
 - Write practice sentences for each point; they **autosave to plain text files** in `sentences/`
+- A goal of **10 sentences per point**, with progress rings, a daily streak and a "next point" button to keep you going
 - **Furigana on hover** for the examples, and for the lines you write
 - Study modes: hide the translations, or blank out the target grammar (cloze)
 - A **grayscale switch** for when other people might see your screen
@@ -42,6 +43,24 @@ python3 server.py --no-open  # don't open the browser automatically
 Pick a grammar point on the left. You get its meaning and pattern, then the example sentences. Write your own
 sentences in the **Your sentences** pane, one per line.
 
+### Saving
+
+Your sentences **save automatically** about a second after you stop typing. The **Save** button in the practice
+header shows the state of the point you're on: yellow **Save** when something is unsaved, **✓ Saved** when it's
+safely in the folder (hover it for the file name and time). Click it, or press `Ctrl+S`, to save immediately.
+
+### The 10-sentence goal
+
+- The practice pane shows **10 ruled slots**. Each sentence you write gets a ✓ and fills one segment of the meter
+  above it. A sentence is any line with at least 3 characters.
+- At 10/10 you get a short celebration and a **Next point →** button. Keep writing for bonus sentences (`10/10 +3`).
+- In the list, each point has a ring that fills as you go and turns into a ✓ when done. The filter buttons
+  (**To do / Started / Done**) show only points in that state.
+- The top bar shows your overall progress, your **🔥 streak** (days in a row with at least one new sentence;
+  it stays alive until the day ends, so you have all of today to keep it going) and **today's** count against a daily target of 10.
+- Want a different goal? Change `GOAL` (sentences per point) or `DAILY` (daily target) at the top of the script
+  in `index.html`.
+
 | Toolbar button | What it does |
 | --- | --- |
 | **Examples** | Show or hide the examples pane |
@@ -55,6 +74,7 @@ Drag the divider between the panes to resize it, or double-click it to reset.
 | Shortcut | Action |
 | --- | --- |
 | `Ctrl+P` | Jump to any grammar point (number, Japanese or English) |
+| `Alt+N` | Jump to the next point you haven't finished |
 | `Alt+↑` / `Alt+↓` | Previous / next point |
 | `Ctrl+S` | Save now (it also saves automatically) |
 | `Ctrl+E` | Show or hide the examples |
@@ -64,14 +84,16 @@ Drag the divider between the panes to resize it, or double-click it to reset.
 **Grayscale** is on the first time you open the app, and the app remembers your last choice in that browser.
 The grammar highlight is also bold and underlined, so it stays visible without colour.
 
-The sidebar filter understands numbers, Japanese, English, and the word `mine`, which shows the 24 points
-that came from the original hand-made list (marked ◆).
+The sidebar filter understands numbers, Japanese, English, `mine` (the 24 points from the original hand-made list,
+marked ◆), and `todo`, `wip` or `done`.
 
 ### Where your sentences go
 
 - `sentences/001_上.txt`, `sentences/019_ざるを得ない.txt`, and so on: one plain UTF-8 file per grammar point,
   one sentence per line. Edit them in any editor if you like.
 - `all_sentences.md` is rebuilt on every save and collects everything into one readable list.
+- `sentences/.progress.json` is a tiny log of how many sentences you added each day. It's what drives the streak.
+  Delete it to reset the streak; your sentences aren't affected.
 
 `sentences/` is your own work, so decide whether you want to commit it. If the repository is public,
 your practice sentences would be public too.
