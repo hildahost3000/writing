@@ -279,6 +279,19 @@
   #offline pre { background: var(--bg2); border: 1px solid var(--line); padding: 12px 16px; border-radius: 10px; font: 14px var(--mono); color: var(--green); }
   #offline p { color: var(--dim); line-height: 1.65; }
 
+  /* backup (browser mode) */
+  .bwrap { position: relative; flex: none; }
+  .bwrap .switch[hidden] { display: none; }
+  #bmenu { position: absolute; right: 0; top: calc(100% + 12px); z-index: 55; width: 320px; padding: 6px; border-radius: 14px; background: var(--card2); border: 1px solid var(--line); box-shadow: 0 16px 44px rgba(0,0,0,.55); }
+  #bmenu[hidden] { display: none; }
+  #bmenu button { display: block; width: 100%; text-align: left; padding: 9px 12px; border-radius: 9px; }
+  #bmenu button:hover { background: var(--accent-soft); }
+  #bmenu b { display: block; color: var(--hi); font-size: 13px; }
+  #bmenu small { display: block; margin-top: 1px; color: var(--dim); font-size: 12px; line-height: 1.4; }
+  #bmenu p { margin: 4px 12px 8px; padding-top: 8px; border-top: 1px solid var(--line); color: var(--faint); font-size: 11.5px; line-height: 1.5; }
+  #bstate[hidden] { display: none; }
+  #bstate.warn { color: var(--yellow); font-weight: 600; }
+
   /* header stats + toast */
   .hchips { display: flex; gap: 8px; flex: none; }
   .hchip { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--card); color: var(--dim); font-size: 12px; white-space: nowrap; }
@@ -325,6 +338,17 @@
     <div class="hchips">
       <span class="hchip" id="streak" title="Days in a row with at least one new sentence">🔥 <b>0</b><span class="l">day streak</span></span>
       <span class="hchip" id="today" title="New sentences written today">✎ <span class="l">Today</span> <b>0</b>/<span id="daily-goal"></span></span>
+    </div>
+    <div class="bwrap">
+      <button id="backup" class="switch" hidden aria-haspopup="menu" aria-expanded="false" title="Your sentences are stored in this browser. Download a backup now and then.">💾 <span>Backup</span></button>
+      <div id="bmenu" role="menu" hidden>
+        <button role="menuitem" data-a="json"><b>Download backup</b><small>Everything in one .json file. Restore it here later, or in another browser.</small></button>
+        <button role="menuitem" data-a="md"><b>Download all sentences</b><small>A readable list (.md) of everything you've written.</small></button>
+        <button role="menuitem" data-a="txt"><b>Download this point</b><small>Just the point you're on, as a .txt file.</small></button>
+        <button role="menuitem" data-a="restore"><b>Restore from backup…</b><small>Load a backup .json, or the .txt files from the server edition's sentences folder. It replaces the points they contain.</small></button>
+        <p>Your sentences are saved in this browser only, on this computer. Clearing the site's data would erase them, so download a backup now and then.</p>
+      </div>
+      <input type="file" id="restore" accept=".json,.txt,application/json,text/plain" multiple hidden>
     </div>
     <button id="gray" class="switch" role="switch" aria-checked="true" title="Grayscale mode (Alt+G): turn on when others might see your screen">
       <span class="track"></span><span>Grayscale</span>
@@ -405,6 +429,7 @@
     <div>
       <span class="item" id="savestate">Loading…</span>
       <span class="item" id="conn"></span>
+      <button class="item" id="bstate" hidden title="Download a backup of your sentences"></button>
     </div>
     <div>
       <span class="item" id="pos"></span>
@@ -427,10 +452,12 @@
 
 <div id="offline" hidden>
   <div>
-    <h2>Can't reach the save server</h2>
-    <p>This page stores your sentences as files in the folder, which needs the small helper server running. Open a terminal in this folder and run:</p>
-    <pre>python3 server.py</pre>
-    <p>It opens this page at <b>http://localhost:8765</b>. If you opened <code>index.html</code> directly from the file manager, use that address instead.</p>
+    <h2>Couldn't load the grammar data</h2>
+    <p>The page needs <code>data/grammar.js</code> next to <code>index.html</code>. If you moved <code>index.html</code> on its own, put it back in its folder.</p>
+    <p>If the file is missing, rebuild it, or start the helper server instead (it reads <code>grammar.json</code> directly):</p>
+    <pre>python3 build_static.py
+python3 server.py</pre>
+    <p>The server opens the page at <b>http://localhost:8765</b>.</p>
   </div>
 </div>
 
@@ -464,7 +491,11 @@
   const timers = {}, chain = {};
   let open = [], active = null;
   let saving = 0, saveError = false;
-  let days = {}, dayKey = '';                 // sentences added per day, from the server
+  // 'server': server.py saves real files in ./sentences. 'browser': no server, so sentences are kept in this browser
+  // (localStorage) with Backup / Restore. The page decides at load time, so one index.html does both.
+  let MODE = 'server';
+  let FURI_STATIC = {};                       // furigana worked out ahead of time for the examples (browser mode)
+  let days = {}, dayKey = '';                 // sentences added per day
   let ta = null, gutterEl = null, curEl = null;
   let gutterLines = 0, curLine = 0;
   const scroller = $('#scroll');
@@ -496,7 +527,7 @@
   function refreshStatus() {
     const el = $('#savestate');
     let cls = 'ok', txt = '✓ All changes saved';
-    if (saveError) { cls = 'err'; txt = '⚠ Not saved to the folder — draft kept in this browser'; }
+    if (saveError) { cls = 'err'; txt = MODE === 'server' ? '⚠ Not saved to the folder — draft kept in this browser' : '⚠ Couldn\'t save in this browser — use Backup → Download'; }
     else if (saving) { cls = 'dirty'; txt = '↻ Saving…'; }
     else if (dirty.size) { cls = 'dirty'; txt = '● Unsaved changes'; }
     el.className = 'item ' + cls; el.textContent = txt;
@@ -509,8 +540,8 @@
     b.dataset.state = state;
     b.textContent = { err: '⚠ Retry save', saving: 'Saving…', dirty: 'Save', clean: '✓ Saved' }[state];
     b.title = state === 'clean' && savedAt[active]
-      ? `Saved to sentences/${g.file} at ${new Date(savedAt[active]).toLocaleTimeString('en-GB')}. It saves automatically; click to save again, or press Ctrl+S.`
-      : `Save to sentences/${g.file} now (Ctrl+S). It also saves automatically a moment after you stop typing.`;
+      ? `Saved to ${where(active)} at ${new Date(savedAt[active]).toLocaleTimeString('en-GB')}. It saves automatically; click to save again, or press Ctrl+S.`
+      : `Save to ${where(active)} now (Ctrl+S). It also saves automatically a moment after you stop typing.`;
   }
 
   const dayStr = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -571,6 +602,7 @@
     document.querySelectorAll('#fchips button[data-f]').forEach(b => { const k = b.dataset.f; if (k) $('b', b).textContent = tally[k]; });
     refreshMeter();
     refreshStats();
+    if (MODE === 'browser') refreshBackup();
   }
 
   /* ---------- explorer ---------- */
@@ -637,7 +669,7 @@
       const t = document.createElement('div');
       t.className = 'tab' + (id === active ? ' on' : '') + (dirty.has(id) ? ' dirty' : '');
       t.setAttribute('role', 'tab');
-      t.title = 'sentences/' + g.file;
+      t.title = where(id);
       t.innerHTML = `<span class="tno">${pad3(g.id)}</span><span>${esc(g.title)}</span>` +
         `<button class="x" aria-label="Close ${esc(g.title)}"><svg class="ic"><use href="#i-x"/></svg></button><i class="dot"></i>`;
       t.addEventListener('click', e => e.target.closest('.x') ? closeTab(id) : activate(id));
@@ -652,7 +684,7 @@
   function renderCrumbs() {
     const c = $('#crumbs');
     if (active == null) { c.innerHTML = ''; return; }
-    c.innerHTML = `sentences <svg class="ic"><use href="#i-chev"/></svg> <b>${esc(byId.get(active).file)}</b>`;
+    c.innerHTML = `${MODE === 'server' ? 'sentences' : 'this browser'} <svg class="ic"><use href="#i-chev"/></svg> <b>${esc(byId.get(active).file)}</b>`;
   }
 
   function persistSession() { store.set('gp2:session', { open, active, prefs }); }
@@ -696,6 +728,7 @@
   let furiDownAt = 0;
 
   async function furigana(list) {
+    if (MODE === 'browser') return list.map(t => FURI_STATIC[t] || null);   // worked out ahead of time for the examples
     const need = [...new Set(list)].filter(t => !furiCache.has(t));
     if (need.length && Date.now() - furiDownAt > 10000) {
       try {
@@ -859,13 +892,13 @@
     const before = count(texts[id]);
     texts[id] = ta.value;
     dirty.add(id);
-    store.set('gp2:draft:' + id, ta.value);   // browser-side safety net until the file write succeeds
+    if (MODE === 'server') store.set('gp2:draft:' + id, ta.value);   // safety net until the file write succeeds
     autosize(); renderGutter(); onCursor();
     updateRow(id); refreshTotals(); refreshStatus();
     if (before < GOAL && count(ta.value) >= GOAL) celebrate(id);
     const tab = $('#tabs .tab.on'); if (tab) tab.classList.add('dirty');
     clearTimeout(timers[id]);
-    timers[id] = setTimeout(() => save(id), 700);
+    timers[id] = setTimeout(() => save(id), MODE === 'browser' ? 250 : 700);
   }
 
   /* hover a line you wrote -> popover with furigana for the whole line */
@@ -875,7 +908,7 @@
   function hidePop() { clearTimeout(hoverTimer); pop.style.display = 'none'; }
 
   function onTaMove(e) {
-    if (prefs.furi === 'off') return;
+    if (prefs.furi === 'off' || MODE === 'browser') return;   // furigana for your own lines needs the dictionary on the server
     lastX = e.clientX;
     const line = Math.floor((e.clientY - ta.getBoundingClientRect().top) / LH);
     if (line === hoverLine) return;
@@ -925,34 +958,93 @@
   $('#ph-save').addEventListener('click', () => { saveAll().then(() => { log('saved by button', 'info'); ta?.focus(); }); });
   $('#fchips').addEventListener('click', e => { const b = e.target.closest('button[data-f]'); if (b) { $('#filter').value = b.dataset.f; applyFilter(); } });
 
+  /* ---------- storage: server files, or this browser ---------- */
+  const LS_TEXT = id => 'gp2:s:t:' + id, LS_DAYS = 'gp2:s:days', LS_BACKUP = 'gp2:s:backup';
+  const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
+  const loadScript = src => new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = () => rej(new Error('could not load ' + src));
+    document.head.appendChild(s);
+  });
+  const where = id => MODE === 'server' ? 'sentences/' + byId.get(id).file : byId.get(id).file + ' (this browser)';
+
+  const serverBackend = {
+    async load() {
+      const get = async u => { const r = await fetch(u, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); return r.json(); };
+      const [grammar, texts] = await Promise.all([get('/api/grammar'), get('/api/sentences')]);
+      if (!Array.isArray(grammar)) throw new Error('not the save server');
+      const st = await get('/api/stats').catch(() => ({ day: '', days: {} }));
+      return { grammar, texts, day: st.day || '', days: st.days || {} };
+    },
+    async save(id, text, keepalive) {
+      const r = await fetch('/api/sentences/' + id, { method: 'PUT', headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body: text, keepalive });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json().catch(() => null);          // {day, today}
+    },
+  };
+
+  const browserBackend = {
+    async load() {
+      await loadScript('data/grammar.js');        // relative path: works from a folder and from a static host
+      const D = window.GP_DATA;
+      if (!D || !Array.isArray(D.grammar)) throw new Error('data/grammar.js is missing');
+      FURI_STATIC = D.furigana || {};
+      const texts = {};
+      for (const g of D.grammar) { const t = lsGet(LS_TEXT(g.id)); if (t != null) texts[g.id] = t; }
+      let d = {}; try { d = JSON.parse(lsGet(LS_DAYS) || '{}') || {}; } catch {}
+      return { grammar: D.grammar, texts, day: dayStr(new Date()), days: d };
+    },
+    save(id, text) {                              // synchronous on purpose: it must finish even while the page is closing
+      if (text) localStorage.setItem(LS_TEXT(id), text); else localStorage.removeItem(LS_TEXT(id));   // throws if storage is blocked or full
+      const delta = count(text) - count(saved[id]);
+      const day = dayStr(new Date());
+      if (delta) { days[day] = Math.max(0, (days[day] || 0) + delta); localStorage.setItem(LS_DAYS, JSON.stringify(days)); }
+      return { day, today: days[day] || 0 };
+    },
+  };
+
   /* ---------- saving ---------- */
+  const unchanged = (id, text) => text === saved[id] || (saved[id] === undefined && text === '');
+
   function save(id, keepalive = false) {
     clearTimeout(timers[id]);
+    if (MODE === 'browser') { saveBrowser(id); return Promise.resolve(); }
     chain[id] = (chain[id] || Promise.resolve()).then(() => doSave(id, keepalive));
     return chain[id];
   }
 
+  function commit(id, text, info) {
+    if (info?.day) { dayKey = info.day; days[info.day] = info.today; refreshStats(); }
+    saved[id] = text;
+    savedAt[id] = Date.now();
+    if (texts[id] === text) { dirty.delete(id); store.del('gp2:draft:' + id); }
+    if (saveError) log(MODE === 'server' ? 'server reachable again' : 'saving works again', 'info');
+    saveError = false;
+    log(`saved  ${where(id)}  (${count(text)} sentence${count(text) === 1 ? '' : 's'})`, 'ok');
+  }
+
+  function failed(id, e) {
+    if (!saveError) log(MODE === 'server'
+      ? `FAILED to save ${byId.get(id).file}: ${e.message}. Is server.py still running? Retrying every 5s; your text is kept in this browser.`
+      : `FAILED to save ${byId.get(id).file}: ${e.message}. This browser may be blocking storage. Use Backup → Download to keep your work.`, 'err');
+    saveError = true;
+  }
+
+  function saveBrowser(id) {
+    const text = texts[id] ?? '';
+    if (unchanged(id, text)) dirty.delete(id);
+    else { try { commit(id, text, browserBackend.save(id, text)); } catch (e) { failed(id, e); } }
+    finishSave(id);
+    if (MODE === 'browser') refreshBackup();
+  }
+
   async function doSave(id, keepalive) {
     const text = texts[id] ?? '';
-    if (text === saved[id] || (saved[id] === undefined && text === '')) { dirty.delete(id); store.del('gp2:draft:' + id); finishSave(id); return; }
+    if (unchanged(id, text)) { dirty.delete(id); store.del('gp2:draft:' + id); finishSave(id); return; }
     saving++; refreshStatus();
-    try {
-      const r = await fetch('/api/sentences/' + id, { method: 'PUT', headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body: text, keepalive });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const info = await r.json().catch(() => null);
-      if (info?.day) { dayKey = info.day; days[info.day] = info.today; refreshStats(); }
-      saved[id] = text;
-      savedAt[id] = Date.now();
-      if (texts[id] === text) { dirty.delete(id); store.del('gp2:draft:' + id); }
-      if (saveError) log('server reachable again', 'info');
-      saveError = false;
-      log(`saved  sentences/${byId.get(id).file}  (${count(text)} sentence${count(text) === 1 ? '' : 's'})`, 'ok');
-    } catch (e) {
-      if (!saveError) log(`FAILED to save ${byId.get(id).file}: ${e.message}. Is server.py still running? Retrying every 5s; your text is kept in this browser.`, 'err');
-      saveError = true;
-    } finally {
-      saving--; finishSave(id);
-    }
+    try { commit(id, text, await serverBackend.save(id, text, keepalive)); }
+    catch (e) { failed(id, e); }
+    finally { saving--; finishSave(id); }
   }
 
   function finishSave(id) { refreshStatus(); updateRow(id); renderTabs(); }
@@ -1087,28 +1179,119 @@
   addEventListener('pagehide', () => saveAll(true));
   addEventListener('beforeunload', e => { if (saveError && dirty.size) { e.preventDefault(); e.returnValue = ''; } });
 
+  /* ---------- backup & restore (browser mode) ---------- */
+  const totalSentences = () => items.reduce((n, g) => n + count(texts[g.id]), 0);
+  const rel = ms => { const m = Math.round((Date.now() - ms) / 60000); return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
+
+  function refreshBackup() {
+    const el = $('#bstate');
+    el.hidden = MODE !== 'browser';
+    if (MODE !== 'browser') return;
+    let b = null; try { b = JSON.parse(lsGet(LS_BACKUP) || 'null'); } catch {}
+    const total = totalSentences();
+    el.textContent = b ? `💾 Backup: ${rel(b.at)}` : '💾 Backup: never';
+    // nudge once there's real work that isn't in a backup yet
+    el.classList.toggle('warn', total > 0 && (!b || total - (b.n || 0) >= 20 || (total > (b.n || 0) && Date.now() - b.at > 7 * 864e5)));
+  }
+  function noteBackup() { try { localStorage.setItem(LS_BACKUP, JSON.stringify({ at: Date.now(), n: totalSentences() })); } catch {} refreshBackup(); }
+
+  function download(name, text, type = 'text/plain') {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type: type + ';charset=utf-8' }));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }
+
+  function allMarkdown() {
+    const out = ['# N2 Grammar: practice sentences', '', `_Exported ${dayStr(new Date())}_`, ''];
+    for (const g of items) {
+      const lines = (texts[g.id] || '').split('\n').map(l => l.trim()).filter(Boolean);
+      if (!lines.length) continue;
+      out.push(`## ${pad3(g.id)} · ${g.title}${g.reading ? ` (${g.reading})` : ''}`, '', `_${g.meanings.join('; ')}_`, '', ...lines.map(l => `- ${l}`), '');
+    }
+    return out.join('\n');
+  }
+
+  const bmenu = $('#bmenu'), bbtn = $('#backup');
+  const closeMenu = () => { bmenu.hidden = true; bbtn.setAttribute('aria-expanded', 'false'); };
+  const openMenu = () => { bmenu.hidden = false; bbtn.setAttribute('aria-expanded', 'true'); };
+  bbtn.addEventListener('click', e => { e.stopPropagation(); bmenu.hidden ? openMenu() : closeMenu(); });
+  $('#bstate').addEventListener('click', e => { e.stopPropagation(); openMenu(); });
+  document.addEventListener('click', closeMenu);
+  addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+  bmenu.addEventListener('click', e => {
+    e.stopPropagation();
+    const a = e.target.closest('button[data-a]')?.dataset.a;
+    if (!a) return;
+    closeMenu();
+    if (a === 'json') {
+      const t = {}; for (const g of items) if ((texts[g.id] || '').trim()) t[g.id] = texts[g.id];
+      download(`n2-grammar-backup-${dayStr(new Date())}.json`,
+        JSON.stringify({ app: 'n2-grammar-practice', version: 1, exportedAt: new Date().toISOString(), texts: t, days }, null, 1), 'application/json');
+      noteBackup(); toast('💾 Backup downloaded. Keep the file somewhere safe.');
+    } else if (a === 'md') download(`n2-grammar-sentences-${dayStr(new Date())}.md`, allMarkdown(), 'text/markdown');
+    else if (a === 'txt' && active != null) download(byId.get(active).file, texts[active] || '', 'text/plain');
+    else if (a === 'restore') $('#restore').click();
+  });
+
+  // Restore from a backup .json, or from the .txt files of the server edition's sentences/ folder (named 001_….txt).
+  $('#restore').addEventListener('change', async e => {
+    const files = [...e.target.files]; e.target.value = '';
+    if (!files.length) return;
+    const incoming = new Map(), backupDays = {};
+    for (const f of files) {
+      try {
+        if (/\.json$/i.test(f.name)) {
+          const d = JSON.parse(await f.text());
+          if (d?.app !== 'n2-grammar-practice' || !d.texts || typeof d.texts !== 'object') throw new Error('not a backup');
+          for (const [id, t] of Object.entries(d.texts)) if (typeof t === 'string') incoming.set(+id, t);
+          Object.assign(backupDays, d.days || {});
+        } else if (/^\d{1,3}[_-].*\.txt$/i.test(f.name)) incoming.set(parseInt(f.name, 10), (await f.text()).replace(/\r\n/g, '\n'));
+      } catch { toast(`Couldn't read ${esc(f.name)}. Choose a backup .json from this app, or the .txt files from the sentences folder.`); return; }
+    }
+    const changed = [...incoming].filter(([id, t]) => byId.has(id) && t !== (texts[id] ?? ''));
+    if (!changed.length) { toast('Nothing to restore: you already have everything in that file.'); return; }
+    const n = changed.reduce((s, [, t]) => s + count(t), 0);
+    if (!confirm(`Restore ${changed.length} grammar point${changed.length === 1 ? '' : 's'} (${n} sentence${n === 1 ? '' : 's'})?\n\nThose points will be replaced by the version in the file.`)) return;
+    rememberView();
+    try {
+      for (const [id, t] of changed) { localStorage.setItem(LS_TEXT(id), t); texts[id] = t; saved[id] = t; dirty.delete(id); }
+      for (const [d, c] of Object.entries(backupDays)) if (Number.isFinite(c)) days[d] = Math.max(days[d] || 0, c);
+      localStorage.setItem(LS_DAYS, JSON.stringify(days));
+    } catch (err) { failed(changed[0][0], err); refreshStatus(); toast('Couldn\'t restore: this browser is blocking storage.'); return; }
+    updateAllRows(); refreshTotals(); applyFilter(); renderTabs(); refreshStatus();
+    if (active != null) renderEditor();
+    noteBackup();
+    log(`restored ${changed.length} grammar point${changed.length === 1 ? '' : 's'} (${n} sentences)`, 'ok');
+    toast(`✓ Restored ${changed.length} grammar point${changed.length === 1 ? '' : 's'} (${n} sentence${n === 1 ? '' : 's'}).`);
+  });
+
+  setInterval(() => {   // keep "today" right across midnight
+    if (MODE !== 'browser') return;
+    const d = dayStr(new Date());
+    if (d !== dayKey) { dayKey = d; refreshStats(); }
+    refreshBackup();
+  }, 60000);
+
   /* ---------- boot ---------- */
   async function boot() {
-    let g, s, st = { day: '', days: {} };
-    try {
-      const get = async u => { const r = await fetch(u, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); return r.json(); };
-      [g, s] = await Promise.all([get('/api/grammar'), get('/api/sentences')]);
-      st = await get('/api/stats').catch(() => st);
-    } catch {
-      $('#offline').hidden = false;
-      $('#savestate').textContent = '✗ Server not running';
-      return;
+    let data;
+    try { data = await serverBackend.load(); }                        // server.py is running: real files
+    catch {
+      MODE = 'browser';                                               // no server: sentences live in this browser
+      try { data = await browserBackend.load(); }
+      catch (e) { console.error(e); $('#offline').hidden = false; $('#savestate').textContent = '✗ Could not load the grammar data'; return; }
     }
-    items = g;
-    days = st.days || {}; dayKey = st.day || '';
+    items = data.grammar;
+    days = data.days; dayKey = data.day;
     items.forEach(x => {
       x.reading ||= '';
       for (const k of ['meanings', 'structure', 'nuance', 'notes', 'books', 'links', 'examples']) x[k] ||= [];
-      byId.set(x.id, x); saved[x.id] = s[x.id]; texts[x.id] = s[x.id] ?? '';
+      byId.set(x.id, x); saved[x.id] = data.texts[x.id]; texts[x.id] = data.texts[x.id] ?? '';
     });
 
     let restored = 0;
-    for (const x of items) {
+    if (MODE === 'server') for (const x of items) {
       const draft = store.get('gp2:draft:' + x.id, null);
       if (typeof draft === 'string' && draft !== (saved[x.id] ?? '')) { texts[x.id] = draft; dirty.add(x.id); restored++; }
       else store.del('gp2:draft:' + x.id);
@@ -1117,9 +1300,18 @@
     const sess = store.get('gp2:session', null);
     const narrow = innerWidth < 720;
     buildExplorer();
-    $('#conn').textContent = '⚡ ' + location.host;
     const nEx = items.reduce((n, x) => n + x.examples.length, 0);
-    log(`workspace ready — ${items.length} grammar points, ${nEx} example sentences, files in ./sentences/`, 'info');
+    if (MODE === 'server') {
+      $('#conn').textContent = '⚡ ' + location.host;
+      log(`workspace ready — ${items.length} grammar points, ${nEx} example sentences, files in ./sentences/`, 'info');
+    } else {
+      $('#conn').textContent = '💾 Saved in this browser';
+      $('#conn').title = 'No server is running, so your sentences are kept in this browser. Use Backup to download a copy.';
+      $('#backup').hidden = false;
+      $('#t-furi').title = 'Furigana on the example sentences (hover a word). Cycle Hover / Always / Off. Your own lines get furigana when the optional server is running.';
+      log(`workspace ready — ${items.length} grammar points, ${nEx} example sentences. Saved in this browser; use Backup to keep a copy.`, 'info');
+      try { navigator.storage?.persist?.(); } catch {}                // ask the browser not to evict our storage
+    }
     Object.assign(prefs, sess?.prefs);
     setSide(prefs.side && !narrow, false);
     setPanel(prefs.panel, false);
