@@ -1,0 +1,4 @@
+# Furigana dictionary. Optional: the app works without it, just with no readings.
+# Install with:  python3 setup_furigana.py   (it unpacks these into ./vendor)
+sudachipy==0.7.0
+sudachidict_core==20260723.1
