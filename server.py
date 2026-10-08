@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+"""Local server for the grammar practice page.
+
+Serves index.html and saves what you type into ./sentences/ (one .txt per
+grammar point) plus a combined all_sentences.md.
+
+    python3 server.py              # then open http://localhost:8765
+    python3 server.py 9000         # different port
+    python3 server.py --no-open    # don't launch a browser tab
+"""
+import json
+import os
+import re
+import sys
+import threading
+import webbrowser
+from datetime import datetime
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+SENTENCES = ROOT / "sentences"
+COMBINED = ROOT / "all_sentences.md"
+HOST, PORT = "127.0.0.1", 8765
+MAX_BYTES = 1_000_000
+LOCK = threading.Lock()
+
+
+def load_grammar():
+    items = json.loads((ROOT / "grammar.json").read_text(encoding="utf-8"))
+    for g in items:
+        safe = re.sub(r'[\\/:*?"<>|\s]+', "_", g["title"]).strip("_")
+        g["file"] = f'{g["id"]:03d}_{safe}.txt'
+    return items
+
+
+def write_atomic(path, text):
+    path.parent.mkdir(exist_ok=True)
+    tmp = path.with_name(f".{path.name}.tmp")  # callers hold LOCK, so one writer at a time
+    try:
+        with open(tmp, "w", encoding="utf-8", newline="\n") as f:
+            f.write(text)
+        os.replace(tmp, path)
+    except BaseException:
+        tmp.unlink(missing_ok=True)
+        raise
+
+
+def rebuild_combined(items):
+    parts = [
+        "# N2 Grammar: practice sentences\n",
+        f"_Updated {datetime.now():%Y-%m-%d %H:%M}_\n",
+    ]
+    for g in items:
+        path = SENTENCES / g["file"]
+        if not path.exists():
+            continue
+        lines = [ln.strip() for ln in path.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        if not lines:
+            continue
+        head = f'## {g["id"]:03d} · {g["title"]}'
+        if g.get("reading"):
+            head += f' ({g["reading"]})'
+        parts.append(head + "\n")
+        parts.append("_" + "; ".join(g["meanings"]) + "_\n")
+        parts.append("\n".join(f"- {ln}" for ln in lines) + "\n")
+    write_atomic(COMBINED, "\n".join(parts))
+
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = "GrammarPractice"
+
+    def log_message(self, fmt, *args):
+        pass  # we print our own save lines
+
+    def _send(self, status, body=b"", ctype="text/plain; charset=utf-8"):
+        self.send_response(status)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _json(self, obj, status=200):
+        body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
+        self._send(status, body, "application/json; charset=utf-8")
+
+    def _host_ok(self):
+        # Refuse requests whose Host isn't loopback (DNS-rebinding guard).
+        host = (self.headers.get("Host") or "").rsplit(":", 1)[0]
+        return host in ("localhost", "127.0.0.1")
+
+    def do_GET(self):
+        if not self._host_ok():
+            return self._send(403, b"forbidden")
+        path = self.path.split("?", 1)[0]
+        if path in ("/", "/index.html"):
+            return self._send(200, (ROOT / "index.html").read_bytes(), "text/html; charset=utf-8")
+        if path == "/api/grammar":
+            return self._json(load_grammar())
+        if path == "/api/sentences":
+            out = {}
+            for g in load_grammar():
+                p = SENTENCES / g["file"]
+                if p.exists():
+                    out[str(g["id"])] = p.read_text(encoding="utf-8")
+            return self._json(out)
+        self._send(404, b"not found")
+
+    def do_PUT(self):
+        if not self._host_ok():
+            return self._send(403, b"forbidden")
+        m = re.fullmatch(r"/api/sentences/(\d+)", self.path.split("?", 1)[0])
+        if not m:
+            return self._send(404, b"not found")
+        items = load_grammar()
+        g = next((x for x in items if x["id"] == int(m.group(1))), None)
+        if g is None:
+            return self._send(404, b"unknown grammar id")
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            return self._send(400, b"bad length")
+        if length > MAX_BYTES:
+            return self._send(413, b"too large")
+        try:
+            text = self.rfile.read(length).decode("utf-8").replace("\r\n", "\n")
+        except UnicodeDecodeError:
+            return self._send(400, b"not utf-8")
+
+        with LOCK:
+            path = SENTENCES / g["file"]
+            if text or path.exists():  # don't create empty files
+                write_atomic(path, text)
+                rebuild_combined(items)
+        n = sum(1 for ln in text.splitlines() if ln.strip())
+        print(f'{datetime.now():%H:%M:%S}  saved  sentences/{g["file"]}  ({n} lines)', flush=True)
+        self._json({"ok": True, "file": g["file"]})
+
+
+def main():
+    args = sys.argv[1:]
+    port = next((int(a) for a in args if a.isdigit()), PORT)
+    SENTENCES.mkdir(exist_ok=True)
+    try:
+        httpd = ThreadingHTTPServer((HOST, port), Handler)
+    except OSError as e:
+        sys.exit(f"Could not start on port {port}: {e}\nAlready running? Otherwise try: python3 server.py {port + 1}")
+    url = f"http://localhost:{port}/"
+    print(f"Grammar practice running at {url}")
+    print(f"Saving to {SENTENCES}")
+    print("Ctrl+C to stop.", flush=True)
+    if "--no-open" not in args:
+        threading.Timer(0.5, webbrowser.open, [url]).start()
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\nStopped.")
+
+
+if __name__ == "__main__":
+    main()

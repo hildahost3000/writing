@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>N2 Grammar Practice</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #1e1e1e; --side: #252526; --act: #333333; --tab: #2d2d2d; --border: #3c3c3c;
+    --fg: #d4d4d4; --dim: #858585; --ln: #6e7681; --ln-on: #c6c6c6; --cur: #282828; --sel: #264f78;
+    --com: #6a9955; --kw: #569cd6; --str: #ce9178; --fn: #dcdcaa; --typ: #4ec9b0;
+    --accent: #007acc; --ok: #89d185; --err: #f48771; --warn: #e2a83b;
+    --LH: 24px;
+    --mono: "JetBrains Mono", "Fira Code", "Cascadia Code", "SF Mono", Consolas, "DejaVu Sans Mono",
+            "Noto Sans Mono CJK JP", "Noto Sans CJK JP", "Yu Gothic", "Hiragino Sans", monospace;
+    --ui: -apple-system, "Segoe UI", "Noto Sans", "Noto Sans CJK JP", "Yu Gothic UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 13px/1.4 var(--ui); overflow: hidden; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  svg.ic { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
+  ::selection { background: var(--sel); }
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-thumb { background: rgba(121,121,121,.4); border: 2px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(121,121,121,.7); background-clip: content-box; border: 2px solid transparent; }
+  ::-webkit-scrollbar-corner { background: transparent; }
+
+  #app { display: grid; grid-template-rows: 30px 1fr 24px; height: 100vh; }
+
+  /* title bar */
+  #titlebar { display: flex; align-items: center; justify-content: center; background: #323233; color: #cccccc; font-size: 12px; border-bottom: 1px solid #252526; }
+  #titlebar b { font-weight: 400; color: #fff; }
+
+  #main { display: flex; min-height: 0; }
+
+  /* activity bar */
+  #activity { flex: none; background: var(--act); display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
+  #activity button { width: 48px; height: 48px; display: grid; place-items: center; color: #858585; border-left: 2px solid transparent; }
+  #activity button:hover { color: #fff; }
+  #activity button.on { color: #fff; border-left-color: #fff; }
+  #activity svg { width: 24px; height: 24px; stroke-width: 1.2; }
+
+  /* sidebar */
+  #sidebar { flex: none; width: 290px; background: var(--side); display: flex; flex-direction: column; min-height: 0; border-right: 1px solid #1b1b1b; }
+  #sidebar[hidden] { display: none; }
+  .side-title { padding: 0 20px; height: 35px; display: flex; align-items: center; font-size: 11px; letter-spacing: .08em; color: #bbbbbb; text-transform: uppercase; }
+  .section { display: flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #cccccc; background: #252526; border-top: 1px solid #3c3c3c; cursor: pointer; user-select: none; }
+  .section svg { transition: transform .1s; transform: rotate(90deg); }
+  .section.closed svg { transform: none; }
+  .section .grow { flex: 1; }
+  .section .prog { font-weight: 400; color: var(--dim); text-transform: none; letter-spacing: 0; }
+  #files { overflow-y: auto; flex: 1; padding-bottom: 12px; }
+  #files.closed { display: none; }
+  .row { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px 0 22px; color: #cccccc; cursor: pointer; outline-offset: -1px; }
+  .row:hover { background: #2a2d2e; }
+  .row.on { background: #37373d; color: #fff; }
+  .row:focus-visible { outline: 1px solid var(--accent); }
+  .row .ic { color: var(--dim); }
+  .row.master .ic { color: var(--ok); }
+  .row .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .star { color: var(--warn); font-size: 11px; }
+  .row .mine { color: var(--kw); font-size: 9px; }
+  .row[hidden] { display: none; }
+  #filterbox { padding: 6px 10px 6px; }
+  #filterbox[hidden] { display: none; }
+  #filter { width: 100%; padding: 4px 8px; background: #3c3c3c; border: 1px solid transparent; border-radius: 2px; outline: 0; color: #ddd; font: 12px var(--ui); }
+  #filter:focus { border-color: var(--accent); }
+  #nomatch { padding: 8px 22px; color: var(--dim); font-style: italic; }
+  #nomatch[hidden] { display: none; }
+  .row .badge { min-width: 18px; padding: 0 6px; border-radius: 9px; text-align: center; font-size: 11px; line-height: 16px; background: #3a3d41; color: #fff; }
+  .row .badge:empty { display: none; }
+  .row .badge.has { background: #2d5a3a; }
+  .row.dirty .name::after { content: " ●"; color: var(--warn); font-size: 9px; }
+
+  /* editor column */
+  #col { flex: 1; display: grid; grid-template-rows: 35px 28px 1fr auto; min-width: 0; min-height: 0; background: var(--bg); }
+  #tabs { display: flex; background: #252526; overflow-x: auto; overflow-y: hidden; }
+  #tabs::-webkit-scrollbar { height: 3px; }
+  .tab { display: flex; align-items: center; gap: 7px; height: 35px; padding: 0 8px 0 12px; background: var(--tab); color: #969696; border-right: 1px solid #252526; cursor: pointer; white-space: nowrap; flex: none; position: relative; }
+  .tab:hover { color: #fff; }
+  .tab.on { background: var(--bg); color: #fff; }
+  .tab.on::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--accent); }
+  .tab .x { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 4px; color: inherit; opacity: 0; }
+  .tab .x svg { width: 14px; height: 14px; }
+  .tab.on .x, .tab:hover .x { opacity: 1; }
+  .tab .x:hover { background: rgba(255,255,255,.12); }
+  .tab .dot { display: none; width: 8px; height: 8px; margin: 0 6px; border-radius: 50%; background: #ccc; }
+  .tab.dirty .x { display: none; }
+  .tab.dirty .dot { display: block; }
+  .tab.dirty:hover .x { display: grid; }
+  .tab.dirty:hover .dot { display: none; }
+  #bar { display: flex; align-items: center; gap: 4px; padding: 0 10px 0 16px; color: #a9a9a9; font-size: 12px; white-space: nowrap; overflow: hidden; }
+  #crumbs { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow: hidden; }
+  #crumbs svg { width: 12px; height: 12px; opacity: .7; flex: none; }
+  #crumbs b { font-weight: 400; color: #d4d4d4; }
+  #tools { display: flex; gap: 4px; flex: none; }
+  #tools[hidden] { display: none; }
+  #tools button { height: 20px; padding: 0 9px; border-radius: 3px; font-size: 11px; color: #b5b5b5; border: 1px solid #3c3c3c; }
+  #tools button:hover { background: rgba(255,255,255,.08); color: #fff; }
+  #tools button[aria-pressed="true"] { background: #04395e; border-color: #0b5a94; color: #fff; }
+
+  #stage { position: relative; min-height: 0; }
+  #split { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  #split.h { flex-direction: row; }
+  #split[hidden], #welcome[hidden] { display: none; }
+  #ref { flex: 0 0 var(--ref, 45%); min-width: 0; min-height: 0; overflow: auto; background: #1a1a1a; font: 14px/var(--LH) var(--mono); counter-reset: rl; }
+  #ref.off, #ref.off + #splitter { display: none; }
+  #splitter { flex: none; background: var(--border); position: relative; z-index: 2; touch-action: none; }
+  #split.v #splitter { height: 5px; cursor: row-resize; }
+  #split.h #splitter { width: 5px; cursor: col-resize; }
+  #splitter:hover, #splitter.drag { background: var(--accent); }
+  #scroll { flex: 1 1 0; min-width: 0; min-height: 0; overflow: auto; font: 14px/var(--LH) var(--mono); }
+  .code { width: 100%; display: flex; flex-direction: column; min-height: 100%; }
+  .line { display: flex; }
+  .line .ln, .gutter .ln { width: 64px; flex: none; text-align: right; padding-right: 22px; color: var(--ln); height: var(--LH); user-select: none; }
+  .line .tx { flex: 1; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; padding-right: 24px; color: var(--com); }
+  .tx .c { color: var(--com); }
+  .tx .ttl { color: var(--typ); font-weight: 700; }
+  .tx .kw { color: var(--kw); }
+  .tx .str { color: var(--str); }
+
+  /* reference pane: line numbers come from a CSS counter so they stay consistent when rows are blanked */
+  #ref .rl { counter-increment: rl; }
+  #ref .rl .ln { width: 48px; padding-right: 16px; }
+  #ref .rl .ln::before { content: counter(rl); }
+  #ref .rl .tx { padding-left: calc(var(--hang, 0ch) + 2px); text-indent: calc(-1 * var(--hang, 0ch)); }
+  #ref .head { padding: 6px 0 4px; }
+  #ref .ja { color: #e6e6e6; }
+  #ref .ja mark { background: rgba(86,156,214,.18); color: #7cc0ff; font-weight: 600; border-radius: 3px; padding: 0 1px; box-shadow: inset 0 -2px 0 rgba(86,156,214,.6); }
+  #ref .tr .tx { color: var(--com); font-style: italic; }
+  #ref .nt .tx { color: #7f8c6d; font-size: 12.5px; }
+  #ref .ex { border-top: 1px solid #262626; padding: 3px 0; }
+  #ref .ex:hover { background: #202020; }
+  #ref.no-tr .ex:not(:hover) .tr .tx { visibility: hidden; }
+  #ref.cloze .ex:not(:hover) .ja mark { color: transparent; text-shadow: none; background: rgba(86,156,214,.35); box-shadow: none; }
+  #ref .empty .tx { font-style: italic; }
+  #ref a.lnk { color: #6cb6ff; text-decoration: none; border-bottom: 1px dotted rgba(108,182,255,.5); }
+  #ref a.lnk:hover { color: #9fd0ff; border-bottom-style: solid; }
+  #ref .warn .tx { color: #d7ba7d; }
+  .body { display: flex; flex: 1; position: relative; }
+  .gutter { flex: none; }
+  .gutter .ln.on { color: var(--ln-on); }
+  .field { position: relative; flex: 1; min-width: 0; }
+  .curline { position: absolute; left: 0; right: 0; height: var(--LH); background: var(--cur); border-top: 1px solid #2f2f2f; border-bottom: 1px solid #2f2f2f; pointer-events: none; }
+  #ta { position: relative; display: block; width: 100%; margin: 0; padding: 0 24px 0 0; border: 0; outline: 0; background: transparent; color: var(--fg);
+        font: inherit; line-height: var(--LH); tab-size: 4; white-space: pre; overflow-x: auto; overflow-y: hidden; resize: none; caret-color: #aeafad; }
+  #ta::placeholder { color: #5c5c5c; font-style: italic; }
+
+  #welcome { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 22px; color: #6b6b6b; text-align: center; }
+  #welcome .mark { font-size: 96px; line-height: 1; color: #2f2f2f; font-family: var(--ui); }
+  #welcome table { border-collapse: collapse; }
+  #welcome td { padding: 5px 10px; text-align: left; }
+  #welcome td:first-child { text-align: right; }
+  kbd { font: 11px var(--ui); padding: 1px 6px; border: 1px solid #4a4a4a; border-bottom-width: 2px; border-radius: 4px; background: #2a2a2a; color: #bbb; }
+
+  /* panel */
+  #panel { height: 128px; display: flex; flex-direction: column; border-top: 1px solid var(--border); background: var(--bg); }
+  #panel[hidden] { display: none; }
+  #panel header { display: flex; align-items: center; height: 35px; padding: 0 12px 0 20px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #e7e7e7; flex: none; }
+  #panel header span { padding: 4px 0; border-bottom: 1px solid #e7e7e7; }
+  #panel header .grow { flex: 1; border: 0; }
+  #panel header button { color: #aaa; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 4px; }
+  #panel header button:hover { background: rgba(255,255,255,.1); color: #fff; }
+  #panel header svg { width: 14px; height: 14px; }
+  #log { flex: 1; overflow: auto; padding: 0 20px 8px; font: 12px/1.65 var(--mono); }
+  #log .t { color: var(--dim); }
+  #log .ok { color: var(--ok); }
+  #log .err { color: var(--err); }
+  #log .info { color: var(--kw); }
+
+  /* status bar */
+  #status { display: flex; align-items: center; justify-content: space-between; background: var(--accent); color: #fff; font-size: 12px; }
+  #status.err { background: #c5391a; }
+  #status > div { display: flex; height: 100%; }
+  #status .item { display: flex; align-items: center; gap: 5px; padding: 0 9px; white-space: nowrap; }
+  #status button.item:hover { background: rgba(255,255,255,.18); }
+  #status .item svg { width: 14px; height: 14px; }
+
+  /* quick open */
+  #qo { position: fixed; inset: 0; z-index: 10; display: flex; justify-content: center; align-items: flex-start; padding-top: 12vh; }
+  #qo[hidden] { display: none; }
+  .qo-box { width: min(600px, 92vw); background: #252526; border: 1px solid #454545; border-radius: 6px; box-shadow: 0 8px 28px rgba(0,0,0,.55); padding: 6px; }
+  .qo-box input { width: 100%; padding: 6px 8px; background: #3c3c3c; border: 1px solid #007fd4; border-radius: 3px; outline: 0; color: #fff; font: 13px var(--ui); }
+  .qo-box ul { list-style: none; margin: 6px 0 0; padding: 0; max-height: 330px; overflow-y: auto; }
+  .qo-box li { display: flex; gap: 12px; align-items: baseline; padding: 3px 8px; height: 26px; border-radius: 3px; cursor: pointer; overflow: hidden; white-space: nowrap; }
+  .qo-box li span { color: #ddd; flex: none; }
+  .qo-box li em { font-style: normal; color: var(--dim); font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+  .qo-box li.on { background: #04395e; }
+  .qo-box li.none { color: var(--dim); cursor: default; }
+
+  /* offline notice */
+  #offline { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: var(--bg); padding: 24px; }
+  #offline[hidden] { display: none; }
+  #offline div { max-width: 520px; }
+  #offline h2 { margin: 0 0 8px; font-weight: 600; color: var(--err); }
+  #offline pre { background: #111; border: 1px solid var(--border); padding: 12px 14px; border-radius: 4px; font: 13px var(--mono); color: var(--ok); }
+  #offline p { color: #bbb; line-height: 1.6; }
+
+  @media (max-width: 720px) { #sidebar { width: 220px; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-file" viewBox="0 0 16 16"><path d="M3.5 1.5h6l3 3v10h-9z M9.5 1.5v3h3 M5.5 8h5 M5.5 10.5h5"/></symbol>
+  <symbol id="i-files" viewBox="0 0 24 24"><path d="M8 3h7l4 4v11H8z M15 3v4h4 M5 7v14h11"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L20 20"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 9.5h12"/></symbol>
+</svg>
+
+<div id="app">
+  <div id="titlebar"><span><b>n2_grammar</b> — 文法練習 — Practice</span></div>
+
+  <div id="main">
+    <nav id="activity" aria-label="Activity bar">
+      <button id="act-files" class="on" title="Explorer (Ctrl+B)" aria-label="Toggle explorer"><svg class="ic"><use href="#i-files"/></svg></button>
+      <button id="act-search" title="Go to grammar point (Ctrl+P)" aria-label="Go to grammar point"><svg class="ic"><use href="#i-search"/></svg></button>
+    </nav>
+
+    <aside id="sidebar">
+      <div class="side-title">Explorer</div>
+      <div class="section" id="folder"><svg class="ic"><use href="#i-chev"/></svg><span>sentences</span><span class="grow"></span><span class="prog" id="prog"></span></div>
+      <div id="filterbox"><input id="filter" type="text" placeholder="Filter files…  (try “mine” for your original list)" aria-label="Filter grammar files" autocomplete="off" spellcheck="false"></div>
+      <div id="files" role="list"></div>
+      <div id="nomatch" hidden>No files match.</div>
+    </aside>
+
+    <div id="col">
+      <div id="tabs" role="tablist"></div>
+      <div id="bar">
+        <div id="crumbs"></div>
+        <div id="tools" hidden>
+          <button id="t-ref" aria-pressed="true" title="Show the grammar notes and example sentences">Examples</button>
+          <button id="t-tr" aria-pressed="true" title="Show English translations (hover a sentence to peek when off)">Translations</button>
+          <button id="t-cloze" aria-pressed="false" title="Hide the target grammar in each example (hover a sentence to peek)">Cloze</button>
+        </div>
+      </div>
+      <div id="stage">
+        <div id="split" hidden>
+          <section id="ref" aria-label="Grammar notes and example sentences"></section>
+          <div id="splitter" role="separator" aria-label="Resize examples pane"></div>
+          <div id="scroll"></div>
+        </div>
+        <div id="welcome">
+          <div class="mark">文</div>
+          <table>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>P</kbd></td><td>Go to grammar point</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>S</kbd></td><td>Save now (it also autosaves)</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>E</kbd></td><td>Show / hide the examples pane</td></tr>
+            <tr><td><kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></td><td>Previous / next grammar point</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>B</kbd></td><td>Toggle explorer</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>J</kbd></td><td>Toggle output panel</td></tr>
+          </table>
+        </div>
+      </div>
+      <section id="panel" aria-label="Output">
+        <header><span>Output</span><span class="grow"></span><button id="panel-x" title="Close panel (Ctrl+J)" aria-label="Close panel"><svg class="ic"><use href="#i-x"/></svg></button></header>
+        <div id="log" role="log"></div>
+      </section>
+    </div>
+  </div>
+
+  <footer id="status">
+    <div>
+      <span class="item" id="savestate">Loading…</span>
+      <span class="item" id="conn"></span>
+    </div>
+    <div>
+      <span class="item" id="pos"></span>
+      <span class="item" id="count"></span>
+      <span class="item" id="total"></span>
+      <span class="item">UTF-8</span>
+      <span class="item">Japanese</span>
+      <button class="item" id="panel-toggle" title="Toggle output panel (Ctrl+J)" aria-label="Toggle output panel"><svg class="ic"><use href="#i-panel"/></svg></button>
+    </div>
+  </footer>
+</div>
+
+<div id="qo" hidden>
+  <div class="qo-box">
+    <input type="text" placeholder="Go to grammar point… (number, Japanese, or English)" aria-label="Go to grammar point" autocomplete="off" spellcheck="false">
+    <ul></ul>
+  </div>
+</div>
+
+<div id="offline" hidden>
+  <div>
+    <h2>Can't reach the save server</h2>
+    <p>This page stores your sentences as files in the folder, which needs the tiny helper server running. Open a terminal in this folder and run:</p>
+    <pre>python3 server.py</pre>
+    <p>It opens this page at <b>http://localhost:8765</b>. If you opened <code>index.html</code> directly from the file manager, use that address instead.</p>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const LH = 24;
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const pad3 = n => String(n).padStart(3, '0');
+  const count = t => (t || '').split('\n').filter(l => l.trim()).length;
+  const clock = () => new Date().toLocaleTimeString('en-GB');
+
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+  };
+
+  let items = [];
+  const byId = new Map();
+  const texts = {}, saved = {}, view = {};
+  const dirty = new Set();
+  const timers = {}, chain = {};
+  let open = [], active = null;
+  let saving = 0, saveError = false;
+  let ta = null, scroller = $('#scroll'), gutterEl = null, curEl = null;
+  let gutterLines = 0, curLine = 0;
+
+  /* ---------- log / status ---------- */
+  function log(msg, kind = '') {
+    const el = $('#log');
+    const d = document.createElement('div');
+    d.innerHTML = `<span class="t">[${clock()}]</span> <span class="${kind}">${esc(msg)}</span>`;
+    el.appendChild(d);
+    while (el.children.length > 200) el.firstChild.remove();
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function refreshStatus() {
+    const el = $('#savestate');
+    $('#status').classList.toggle('err', saveError);
+    if (saveError) el.textContent = '⚠ Not saved to folder — draft kept in browser';
+    else if (saving) el.textContent = '↻ Saving…';
+    else if (dirty.size) el.textContent = '● Unsaved changes';
+    else el.textContent = '✓ All changes saved';
+  }
+
+  function refreshTotals() {
+    const done = items.filter(g => count(texts[g.id]) > 0).length;
+    const sentences = items.reduce((n, g) => n + count(texts[g.id]), 0);
+    $('#prog').textContent = `${done}/${items.length}`;
+    $('#total').textContent = `Practised ${done}/${items.length} · ${sentences} sentence${sentences === 1 ? '' : 's'}`;
+    $('#count').textContent = active == null ? '' : `This file: ${count(texts[active])}`;
+  }
+
+  /* ---------- explorer ---------- */
+  const rows = new Map();
+
+  function buildExplorer() {
+    const list = $('#files');
+    list.innerHTML = '';
+    for (const g of items) {
+      const el = document.createElement('div');
+      el.className = 'row' + (g.status === 'Master' ? ' master' : '');
+      el.tabIndex = 0;
+      el.setAttribute('role', 'listitem');
+      el.title = `${g.file}\n${g.meanings.join(', ')}\n${g.status}${g.mine ? ' · from your original list' : ''}`;
+      el.innerHTML = `<svg class="ic"><use href="#i-file"/></svg><span class="name">${esc(g.file)}</span>` +
+        (g.mine ? '<span class="mine" title="From your original list">◆</span>' : '') +
+        (g.status === 'Master' ? '<span class="star" title="Master">★</span>' : '') + '<span class="badge"></span>';
+      el.addEventListener('click', () => activate(g.id));
+      el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(g.id); } });
+      list.appendChild(el);
+      rows.set(g.id, el);
+    }
+  }
+
+  function updateRow(id) {
+    const el = rows.get(id); if (!el) return;
+    const n = count(texts[id]);
+    el.classList.toggle('on', id === active);
+    el.classList.toggle('dirty', dirty.has(id));
+    const b = $('.badge', el);
+    b.textContent = n || '';
+    b.classList.toggle('has', n > 0);
+  }
+  const updateAllRows = () => items.forEach(g => updateRow(g.id));
+
+  const hay = g => g._hay || (g._hay = `${g.id} ${pad3(g.id)} ${g.title} ${g.reading} ${g.meanings.join(' ')} ${g.status} ${g.mine ? 'mine ◆ original' : ''}`.toLowerCase());
+
+  function applyFilter() {
+    const q = $('#filter').value.trim().toLowerCase();
+    let shown = 0;
+    for (const g of items) { const ok = !q || hay(g).includes(q); rows.get(g.id).hidden = !ok; if (ok) shown++; }
+    $('#nomatch').hidden = shown > 0;
+  }
+
+  /* ---------- tabs ---------- */
+  function renderTabs() {
+    const bar = $('#tabs');
+    bar.innerHTML = '';
+    for (const id of open) {
+      const g = byId.get(id);
+      const t = document.createElement('div');
+      t.className = 'tab' + (id === active ? ' on' : '') + (dirty.has(id) ? ' dirty' : '');
+      t.setAttribute('role', 'tab');
+      t.title = 'sentences/' + g.file;
+      t.innerHTML = `<svg class="ic"><use href="#i-file"/></svg><span>${esc(g.file)}</span>` +
+        `<button class="x" aria-label="Close ${esc(g.file)}"><svg class="ic"><use href="#i-x"/></svg></button><i class="dot"></i>`;
+      t.addEventListener('click', e => e.target.closest('.x') ? closeTab(id) : activate(id));
+      t.addEventListener('auxclick', e => { if (e.button === 1) closeTab(id); });
+      bar.appendChild(t);
+    }
+    const on = bar.querySelector('.tab.on');
+    if (on) bar.scrollLeft = Math.max(0, on.offsetLeft - 40);
+    renderCrumbs();
+  }
+
+  function renderCrumbs() {
+    const c = $('#crumbs');
+    if (active == null) { c.innerHTML = ''; return; }
+    c.innerHTML = `sentences <svg class="ic"><use href="#i-chev"/></svg> <b>${esc(byId.get(active).file)}</b>`;
+  }
+
+  // what the user chose, independent of auto-hiding on narrow windows
+  const prefs = { side: true, panel: true, ref: true, tr: true, cloze: false, split: null };
+  function persistSession() {
+    store.set('gp2:session', { open, active, prefs });
+  }
+
+  function rememberView() {
+    if (active == null || !ta) return;
+    view[active] = { s: ta.selectionStart, e: ta.selectionEnd, top: scroller.scrollTop, left: scroller.scrollLeft };
+  }
+
+  function activate(id, { focus = true } = {}) {
+    if (!byId.has(id)) return;
+    rememberView();
+    active = id;
+    if (!open.includes(id)) open.push(id);
+    persistSession();
+    renderTabs();
+    renderEditor();
+    updateAllRows();
+    refreshTotals();
+    if (focus && ta) ta.focus({ preventScroll: true });
+    rows.get(id)?.scrollIntoView({ block: 'nearest' });
+  }
+
+  function closeTab(id) {
+    if (dirty.has(id)) save(id);
+    const i = open.indexOf(id);
+    if (i < 0) return;
+    rememberView();
+    open.splice(i, 1);
+    if (id === active) {
+      const next = open[i] ?? open[i - 1] ?? null;
+      if (next == null) { active = null; ta = null; persistSession(); renderTabs(); renderEditor(); updateAllRows(); refreshTotals(); }
+      else { active = null; activate(next); }
+    } else { persistSession(); renderTabs(); }
+  }
+
+  /* ---------- editor ---------- */
+  // Reference pane: grammar notes as a doc-comment, then the example sentences.
+  // Sentences carry the target grammar as {{...}}, rendered as a highlight (or hidden in cloze mode).
+  function renderRef(g) {
+    // hang = characters of prefix, so wrapped lines line up under the value
+    const row = (h, cls = '', hang = 0) => `<div class="line rl ${cls}"><span class="ln"></span><span class="tx" style="--hang:${hang}ch">${h}</span></div>`;
+    const c = t => `<span class="c">${t}</span>`;
+    const tagRow = (k, vals, cls = '') => vals.map((v, i) => row(
+      c(' * ') + (i ? ' '.repeat(9) : `<span class="kw">@${k}</span>${' '.repeat(Math.max(1, 8 - k.length))}`) + `<span class="str">${esc(v)}</span>`, cls, 12)).join('');
+    const ja = s => s.split(/\{\{(.+?)\}\}/).map((p, i) => i % 2 ? `<mark>${esc(p)}</mark>` : esc(p)).join('');
+    const okUrl = u => /^https?:\/\//i.test(u || '');
+
+    let h = row(c('/**'), 'head') + row(c(' * ') + `<span class="ttl">${esc(g.title)}</span>` + (g.reading ? c(`  (${esc(g.reading)})`) : ''));
+    h += tagRow('meaning', [g.meanings.join('  ·  ')]);
+    h += tagRow('pattern', g.structure);
+    h += tagRow('careful', g.notes, 'warn');
+    h += tagRow('level', [`${g.level}  ·  ${g.status}`]);
+    h += row(c(' */'));
+    h += row('', 'blank');
+    if (!g.examples.length) h += row(c('// no example sentences for this point in the Bunpro deck — write your own below'), 'empty', 3);
+    else {
+      h += row(c(`// ── ${g.examples.length} examples ──`));
+      h += g.examples.map(e => `<div class="ex">` + row(ja(e.ja), 'ja') + row(c('// ↳ ' + esc(e.en)), 'tr', 5) +
+        (e.note ? row(c('//   ' + esc(e.note)), 'nt', 5) : '') + `</div>`).join('');
+    }
+    if (g.nuance.length || g.books.length || g.links.length) {
+      h += row('', 'blank') + row(c('// ── notes & links ──'));
+      h += tagRow('nuance', g.nuance);
+      h += tagRow('source', g.books);
+      h += g.links.map((l, i) => row(c(' * ') + (i ? ' '.repeat(9) : `<span class="kw">@link</span>    `) +
+        (okUrl(l.url) ? `<a class="lnk" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label || l.site || l.url)}</a>` : `<span class="str">${esc(l.label)}</span>`) +
+        (l.site && l.label ? c(`  — ${esc(l.site)}`) : ''), '', 12)).join('');
+    }
+    h += row('', 'blank');
+    $('#ref').innerHTML = h;
+    $('#ref').scrollTop = 0;
+  }
+
+  function renderEditor() {
+    const split = $('#split'), welcome = $('#welcome');
+    if (active == null) { split.hidden = true; welcome.hidden = false; $('#tools').hidden = true; scroller.innerHTML = ''; $('#ref').innerHTML = ''; ta = null; $('#pos').textContent = ''; return; }
+    welcome.hidden = true; split.hidden = false; $('#tools').hidden = false;
+
+    const g = byId.get(active);
+    renderRef(g);
+    scroller.innerHTML =
+      `<div class="code"><div class="body"><div class="gutter"></div><div class="field"><div class="curline"></div>` +
+      `<textarea id="ta" wrap="off" lang="ja" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Practice sentences for ${esc(g.title)}" ` +
+      `placeholder="例: ここに練習文を書いてください"></textarea></div></div></div>`;
+    gutterEl = $('.gutter', scroller); curEl = $('.curline', scroller); ta = $('#ta', scroller);
+    ta.value = texts[active] ?? '';
+    gutterLines = 0;
+
+    ta.addEventListener('input', onInput);
+    ta.addEventListener('keydown', () => requestAnimationFrame(onCursor));
+    ['keyup', 'mouseup', 'focus'].forEach(ev => ta.addEventListener(ev, onCursor));
+    ta.addEventListener('blur', () => { curEl.style.visibility = 'hidden'; });
+
+    autosize(); renderGutter();
+    const v = view[active];
+    if (v) { ta.setSelectionRange(v.s, v.e); scroller.scrollTop = v.top; scroller.scrollLeft = v.left; }
+    else { const n = ta.value.length; ta.setSelectionRange(n, n); scroller.scrollTop = 0; }
+    onCursor();
+  }
+
+  function autosize() {
+    if (!ta) return;
+    const lines = ta.value.split('\n').length;
+    ta.style.height = Math.max(lines * LH + 48, scroller.clientHeight) + 'px';
+  }
+
+  function renderGutter() {
+    const n = ta.value.split('\n').length;
+    if (n === gutterLines) return;
+    gutterLines = n;
+    let h = '';
+    for (let i = 0; i < n; i++) h += `<div class="ln">${i + 1}</div>`;
+    gutterEl.innerHTML = h;
+    gutterEl.children[curLine]?.classList.add('on');
+  }
+
+  function onCursor() {
+    if (!ta) return;
+    const upTo = ta.value.slice(0, ta.selectionStart);
+    const line = upTo.split('\n').length - 1;
+    const col = upTo.length - (upTo.lastIndexOf('\n') + 1) + 1;
+    gutterEl.children[curLine]?.classList.remove('on');
+    curLine = line;
+    gutterEl.children[line]?.classList.add('on');
+    curEl.style.top = line * LH + 'px';
+    curEl.style.visibility = document.activeElement === ta ? 'visible' : 'hidden';
+    $('#pos').textContent = `Ln ${line + 1}, Col ${col}`;
+  }
+
+  function onInput() {
+    const id = active;
+    texts[id] = ta.value;
+    dirty.add(id);
+    store.set('gp2:draft:' + id, ta.value);   // browser-side safety net until the file write succeeds
+    autosize(); renderGutter(); onCursor();
+    updateRow(id); refreshTotals(); refreshStatus();
+    const tab = $('#tabs .tab.on'); if (tab) tab.classList.add('dirty');
+    clearTimeout(timers[id]);
+    timers[id] = setTimeout(() => save(id), 700);
+  }
+
+  /* ---------- saving ---------- */
+  function save(id, keepalive = false) {
+    clearTimeout(timers[id]);
+    chain[id] = (chain[id] || Promise.resolve()).then(() => doSave(id, keepalive));
+    return chain[id];
+  }
+
+  async function doSave(id, keepalive) {
+    const text = texts[id] ?? '';
+    if (text === saved[id] || (saved[id] === undefined && text === '')) { dirty.delete(id); store.del('gp2:draft:' + id); finishSave(id); return; }
+    saving++; refreshStatus();
+    try {
+      const r = await fetch('/api/sentences/' + id, { method: 'PUT', headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body: text, keepalive });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      saved[id] = text;
+      if (texts[id] === text) { dirty.delete(id); store.del('gp2:draft:' + id); }
+      if (saveError) log('server reachable again', 'info');
+      saveError = false;
+      log(`saved  sentences/${byId.get(id).file}  (${count(text)} sentence${count(text) === 1 ? '' : 's'})`, 'ok');
+    } catch (e) {
+      if (!saveError) log(`FAILED to save ${byId.get(id).file}: ${e.message}. Is server.py still running? Retrying every 5s; your text is kept in this browser.`, 'err');
+      saveError = true;
+    } finally {
+      saving--; finishSave(id);
+    }
+  }
+
+  function finishSave(id) { refreshStatus(); updateRow(id); renderTabs(); }
+  const saveAll = (keepalive = false) => Promise.all([...dirty].map(id => save(id, keepalive)));
+
+  /* ---------- quick open ---------- */
+  const qo = $('#qo'), qin = $('input', qo), qlist = $('ul', qo);
+  let qsel = 0, qmatches = [];
+
+  function renderQO() {
+    const q = qin.value.trim().toLowerCase();
+    qmatches = items.filter(g => !q || hay(g).includes(q));
+    qsel = Math.max(0, Math.min(qsel, qmatches.length - 1));
+    qlist.innerHTML = qmatches.map((g, i) => `<li data-id="${g.id}" class="${i === qsel ? 'on' : ''}"><span>${esc(g.file)}</span><em>${esc(g.meanings.join(', '))}</em></li>`).join('')
+      || '<li class="none">No matching grammar point</li>';
+  }
+  function openQO() { qo.hidden = false; qin.value = ''; qsel = 0; renderQO(); qin.focus(); }
+  function closeQO(refocus = true) { qo.hidden = true; if (refocus) ta?.focus(); }
+  function pickQO(id) { closeQO(false); activate(id); }
+
+  qin.addEventListener('input', () => { qsel = 0; renderQO(); });
+  qin.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      qsel = (qsel + (e.key === 'ArrowDown' ? 1 : -1) + qmatches.length) % Math.max(1, qmatches.length);
+      renderQO();
+      $('li.on', qlist)?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter' && !e.isComposing) {
+      e.preventDefault();
+      if (qmatches[qsel]) pickQO(qmatches[qsel].id);
+    } else if (e.key === 'Escape') closeQO();
+  });
+  qlist.addEventListener('click', e => { const li = e.target.closest('li[data-id]'); if (li) pickQO(+li.dataset.id); });
+  qo.addEventListener('mousedown', e => { if (e.target === qo) closeQO(); });
+
+  /* ---------- layout toggles ---------- */
+  function setSide(show, remember = true) {
+    $('#sidebar').hidden = !show;
+    $('#act-files').classList.toggle('on', show);
+    if (remember) { prefs.side = show; persistSession(); }
+    autosize();
+  }
+  function setPanel(show, remember = true) {
+    $('#panel').hidden = !show;
+    if (remember) { prefs.panel = show; persistSession(); }
+    autosize();
+  }
+  const toggleSide = () => setSide($('#sidebar').hidden);
+  const togglePanel = () => setPanel($('#panel').hidden);
+
+  /* ---------- examples pane: toggles, layout, splitter ---------- */
+  const split = $('#split'), refEl = $('#ref'), splitter = $('#splitter');
+
+  function applyRefPrefs() {
+    refEl.classList.toggle('off', !prefs.ref);
+    refEl.classList.toggle('no-tr', !prefs.tr);
+    refEl.classList.toggle('cloze', prefs.cloze);
+    $('#t-ref').setAttribute('aria-pressed', String(prefs.ref));
+    $('#t-tr').setAttribute('aria-pressed', String(prefs.tr));
+    $('#t-cloze').setAttribute('aria-pressed', String(prefs.cloze));
+    applySplit();
+  }
+  function applySplit() {
+    const wide = split.clientWidth >= 1000;
+    split.classList.toggle('h', wide);
+    split.classList.toggle('v', !wide);
+    const r = prefs.split ?? (wide ? 0.5 : 0.45);
+    split.style.setProperty('--ref', (r * 100).toFixed(1) + '%');
+    autosize();
+  }
+  function setPref(k, v) { prefs[k] = v; persistSession(); applyRefPrefs(); }
+  $('#t-ref').addEventListener('click', () => setPref('ref', !prefs.ref));
+  $('#t-tr').addEventListener('click', () => setPref('tr', !prefs.tr));
+  $('#t-cloze').addEventListener('click', () => setPref('cloze', !prefs.cloze));
+  new ResizeObserver(applySplit).observe(split);
+
+  splitter.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    splitter.setPointerCapture(e.pointerId);
+    splitter.classList.add('drag');
+    document.body.style.userSelect = 'none';
+  });
+  splitter.addEventListener('pointermove', e => {
+    if (!splitter.classList.contains('drag')) return;
+    const box = split.getBoundingClientRect();
+    const wide = split.classList.contains('h');
+    const r = wide ? (e.clientX - box.left) / box.width : (e.clientY - box.top) / box.height;
+    prefs.split = Math.min(0.8, Math.max(0.2, r));
+    applySplit();
+  });
+  const endDrag = () => { if (!splitter.classList.contains('drag')) return; splitter.classList.remove('drag'); document.body.style.userSelect = ''; persistSession(); };
+  splitter.addEventListener('pointerup', endDrag);
+  splitter.addEventListener('pointercancel', endDrag);
+  splitter.addEventListener('dblclick', () => { prefs.split = null; persistSession(); applySplit(); });
+
+  $('#filter').addEventListener('input', applyFilter);
+  function step(d) {
+    const i = items.findIndex(g => g.id === active);
+    const n = items[Math.max(0, Math.min(items.length - 1, (i < 0 ? 0 : i + d)))];
+    if (n) activate(n.id);
+  }
+
+  $('#act-files').addEventListener('click', () => toggleSide());
+  $('#act-search').addEventListener('click', openQO);
+  $('#panel-x').addEventListener('click', () => setPanel(false));
+  $('#panel-toggle').addEventListener('click', () => togglePanel());
+  $('#folder').addEventListener('click', () => { $('#folder').classList.toggle('closed'); $('#files').classList.toggle('closed'); });
+
+  addEventListener('keydown', e => {
+    const mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
+    if (mod && !e.shiftKey && !e.altKey && k === 's') { e.preventDefault(); saveAll().then(() => log('manual save complete', 'info')); }
+    else if (mod && !e.shiftKey && k === 'p') { e.preventDefault(); openQO(); }
+    else if (mod && !e.shiftKey && k === 'b') { e.preventDefault(); toggleSide(); }
+    else if (mod && !e.shiftKey && k === 'j') { e.preventDefault(); togglePanel(); }
+    else if (mod && !e.shiftKey && k === 'e') { e.preventDefault(); setPref('ref', !prefs.ref); }
+    else if (e.altKey && !mod && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { e.preventDefault(); step(e.key === 'ArrowDown' ? 1 : -1); }
+  });
+  setInterval(() => { if (saveError && dirty.size && !saving) saveAll(); }, 5000);
+  addEventListener('resize', autosize);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveAll(true); });
+  addEventListener('pagehide', () => saveAll(true));
+  addEventListener('beforeunload', e => { if (saveError && dirty.size) { e.preventDefault(); e.returnValue = ''; } });
+
+  /* ---------- boot ---------- */
+  async function boot() {
+    let g, s;
+    try {
+      const get = async u => { const r = await fetch(u, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); return r.json(); };
+      [g, s] = await Promise.all([get('/api/grammar'), get('/api/sentences')]);
+    } catch {
+      $('#offline').hidden = false;
+      $('#savestate').textContent = '✗ Server not running';
+      return;
+    }
+    items = g;
+    items.forEach(x => {
+      x.reading ||= '';
+      for (const k of ['meanings', 'structure', 'nuance', 'notes', 'books', 'links', 'examples']) x[k] ||= [];
+      byId.set(x.id, x); saved[x.id] = s[x.id]; texts[x.id] = s[x.id] ?? '';
+    });
+
+    let restored = 0;
+    for (const x of items) {
+      const draft = store.get('gp2:draft:' + x.id, null);
+      if (typeof draft === 'string' && draft !== (saved[x.id] ?? '')) { texts[x.id] = draft; dirty.add(x.id); restored++; }
+      else store.del('gp2:draft:' + x.id);
+    }
+
+    const sess = store.get('gp2:session', null);
+    const narrow = innerWidth < 720;
+    buildExplorer();
+    $('#conn').textContent = '⚡ ' + location.host;
+    const nEx = items.reduce((n, x) => n + x.examples.length, 0);
+    log(`workspace ready — ${items.length} grammar points, ${nEx} example sentences, files in ./sentences/`, 'info');
+    Object.assign(prefs, sess?.prefs);
+    setSide(prefs.side && !narrow, false);
+    setPanel(prefs.panel, false);
+    applyRefPrefs();
+
+    open = sess ? sess.open.filter(id => byId.has(id)) : [items[0].id];
+    const start = sess && byId.has(sess.active) ? sess.active : (open[0] ?? null);
+    renderTabs();
+    updateAllRows();
+    refreshTotals();
+    refreshStatus();
+    if (start != null) activate(start, { focus: !narrow });
+    else renderEditor();
+
+    if (restored) { log(`restored ${restored} unsaved draft${restored > 1 ? 's' : ''} from this browser — saving to folder`, 'info'); saveAll(); }
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
