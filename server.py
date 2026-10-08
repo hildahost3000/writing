@@ -7,6 +7,8 @@ grammar point) plus a combined all_sentences.md.
     python3 server.py              # then open http://localhost:8765
     python3 server.py 9000         # different port
     python3 server.py --no-open    # don't launch a browser tab
+
+Furigana comes from SudachiPy, kept in ./vendor (see furigana.py).
 """
 import json
 import os
@@ -17,6 +19,9 @@ import webbrowser
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlparse
+
+import furigana
 
 ROOT = Path(__file__).resolve().parent
 SENTENCES = ROOT / "sentences"
@@ -86,9 +91,12 @@ class Handler(BaseHTTPRequestHandler):
         self._send(status, body, "application/json; charset=utf-8")
 
     def _host_ok(self):
-        # Refuse requests whose Host isn't loopback (DNS-rebinding guard).
+        # Refuse requests whose Host isn't loopback (DNS-rebinding guard), and
+        # cross-site requests (an Origin header naming some other site).
         host = (self.headers.get("Host") or "").rsplit(":", 1)[0]
-        return host in ("localhost", "127.0.0.1")
+        origin = self.headers.get("Origin")
+        origin_host = urlparse(origin).hostname if origin else None
+        return host in ("localhost", "127.0.0.1") and origin_host in (None, "localhost", "127.0.0.1")
 
     def do_GET(self):
         if not self._host_ok():
@@ -106,6 +114,26 @@ class Handler(BaseHTTPRequestHandler):
                     out[str(g["id"])] = p.read_text(encoding="utf-8")
             return self._json(out)
         self._send(404, b"not found")
+
+    def do_POST(self):
+        if not self._host_ok():
+            return self._send(403, b"forbidden")
+        if self.path.split("?", 1)[0] != "/api/furigana":
+            return self._send(404, b"not found")
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+            if length > 200_000:
+                return self._send(413, b"too large")
+            texts = json.loads(self.rfile.read(length).decode("utf-8"))["texts"]
+            if not (isinstance(texts, list) and len(texts) <= 300 and all(isinstance(t, str) and len(t) <= 600 for t in texts)):
+                raise ValueError
+        except (ValueError, KeyError, UnicodeDecodeError):
+            return self._send(400, b"expected {\"texts\": [up to 300 strings]}")
+        try:
+            results = [furigana.segments(t) for t in texts]
+        except Exception as e:  # SudachiPy / dictionary missing
+            return self._json({"error": f"furigana unavailable: {e}"}, 503)
+        self._json({"results": results})
 
     def do_PUT(self):
         if not self._host_ok():
@@ -149,6 +177,7 @@ def main():
     url = f"http://localhost:{port}/"
     print(f"Grammar practice running at {url}")
     print(f"Saving to {SENTENCES}")
+    print("Furigana: " + ("ready (SudachiPy)" if furigana.available() else "NOT available. Is ./vendor intact?"))
     print("Ctrl+C to stop.", flush=True)
     if "--no-open" not in args:
         threading.Timer(0.5, webbrowser.open, [url]).start()

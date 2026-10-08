@@ -4,228 +4,289 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>N2 Grammar Practice</title>
+<script>
+  // Grayscale is the default (safe to open in public); applied before first paint so there's no colour flash.
+  try { var g = localStorage.getItem('gp2:gray'); if (g === null || g === 'true') document.documentElement.classList.add('gray'); }
+  catch (e) { document.documentElement.classList.add('gray'); }
+</script>
 <style>
   :root {
     color-scheme: dark;
-    --bg: #1e1e1e; --side: #252526; --act: #333333; --tab: #2d2d2d; --border: #3c3c3c;
-    --fg: #d4d4d4; --dim: #858585; --ln: #6e7681; --ln-on: #c6c6c6; --cur: #282828; --sel: #264f78;
-    --com: #6a9955; --kw: #569cd6; --str: #ce9178; --fn: #dcdcaa; --typ: #4ec9b0;
-    --accent: #007acc; --ok: #89d185; --err: #f48771; --warn: #e2a83b;
-    --LH: 24px;
-    --mono: "JetBrains Mono", "Fira Code", "Cascadia Code", "SF Mono", Consolas, "DejaVu Sans Mono",
-            "Noto Sans Mono CJK JP", "Noto Sans CJK JP", "Yu Gothic", "Hiragino Sans", monospace;
-    --ui: -apple-system, "Segoe UI", "Noto Sans", "Noto Sans CJK JP", "Yu Gothic UI", system-ui, sans-serif;
+    --bg: #1a1b26; --bg2: #15161f; --card: #20222f; --card2: #272a3c; --line: #2b2f45;
+    --text: #c8d0f0; --hi: #eef1ff; --dim: #8a92b8; --faint: #6a7196;
+    --accent: #7aa2f7; --accent-soft: rgba(122,162,247,.15); --accent-line: rgba(122,162,247,.45);
+    --pink: #f7768e; --green: #9ece6a; --yellow: #e0af68; --purple: #bb9af7; --teal: #73daca;
+    --LH: 30px;
+    --jp: "Noto Sans JP", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", Meiryo, "Noto Sans CJK JP", system-ui, sans-serif;
+    --ui: Inter, "Segoe UI", system-ui, -apple-system, "Noto Sans", "Noto Sans CJK JP", sans-serif;
+    --mono: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, "DejaVu Sans Mono", "Noto Sans Mono CJK JP", monospace;
   }
+  html { transition: filter .3s ease; }
+  html.gray { filter: grayscale(1); }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 13px/1.4 var(--ui); overflow: hidden; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.45 var(--ui); overflow: hidden; }
   button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
-  svg.ic { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
-  ::selection { background: var(--sel); }
+  button:focus-visible, input:focus-visible, .row:focus-visible, #splitter:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  svg.ic { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+  ::selection { background: rgba(122,162,247,.38); }
   ::-webkit-scrollbar { width: 12px; height: 12px; }
-  ::-webkit-scrollbar-thumb { background: rgba(121,121,121,.4); border: 2px solid transparent; background-clip: content-box; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(121,121,121,.7); background-clip: content-box; border: 2px solid transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(138,146,184,.28); border: 3px solid transparent; background-clip: content-box; border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(138,146,184,.5); background-clip: content-box; border: 3px solid transparent; }
   ::-webkit-scrollbar-corner { background: transparent; }
 
-  #app { display: grid; grid-template-rows: 30px 1fr 24px; height: 100vh; }
+  #app { display: grid; grid-template-rows: 52px 1fr 28px; height: 100vh; }
 
-  /* title bar */
-  #titlebar { display: flex; align-items: center; justify-content: center; background: #323233; color: #cccccc; font-size: 12px; border-bottom: 1px solid #252526; }
-  #titlebar b { font-weight: 400; color: #fff; }
+  /* ---------- header ---------- */
+  #top { display: flex; align-items: center; gap: 18px; padding: 0 16px; background: var(--bg2); border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 11px; flex: none; }
+  .logo { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; font: 700 18px var(--jp); color: #14151f; background: linear-gradient(135deg, var(--accent), var(--purple)); }
+  .brand b { display: block; color: var(--hi); font-size: 14px; line-height: 1.15; }
+  .brand small { color: var(--dim); font-size: 11px; }
+  .overall { flex: 1; display: flex; align-items: center; gap: 12px; max-width: 440px; margin: 0 auto; color: var(--dim); font-size: 12px; white-space: nowrap; }
+  .overall .bar { flex: 1; height: 7px; border-radius: 99px; background: var(--line); overflow: hidden; }
+  .overall .bar i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--teal)); transition: width .35s; }
+  .switch { display: flex; align-items: center; gap: 9px; padding: 5px 12px 5px 6px; border: 1px solid var(--line); border-radius: 99px; background: var(--card); color: var(--dim); font-size: 12px; flex: none; }
+  .switch:hover { border-color: var(--accent-line); color: var(--hi); }
+  .switch .track { width: 32px; height: 19px; border-radius: 99px; background: #3a3f5c; position: relative; transition: background .2s; }
+  .switch .track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: #fff; transition: transform .2s; }
+  .switch[aria-checked="true"] { color: var(--hi); }
+  .switch[aria-checked="true"] .track { background: var(--accent); }
+  .switch[aria-checked="true"] .track::after { transform: translateX(13px); }
 
   #main { display: flex; min-height: 0; }
 
-  /* activity bar */
-  #activity { flex: none; background: var(--act); display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
-  #activity button { width: 48px; height: 48px; display: grid; place-items: center; color: #858585; border-left: 2px solid transparent; }
-  #activity button:hover { color: #fff; }
-  #activity button.on { color: #fff; border-left-color: #fff; }
-  #activity svg { width: 24px; height: 24px; stroke-width: 1.2; }
+  /* ---------- activity bar + sidebar ---------- */
+  #activity { flex: none; width: 52px; background: var(--bg2); border-right: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 10px; }
+  #activity button { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; color: var(--dim); }
+  #activity button:hover { background: var(--card); color: var(--hi); }
+  #activity button.on { background: var(--accent-soft); color: var(--accent); }
+  #activity svg { width: 20px; height: 20px; }
 
-  /* sidebar */
-  #sidebar { flex: none; width: 290px; background: var(--side); display: flex; flex-direction: column; min-height: 0; border-right: 1px solid #1b1b1b; }
+  #sidebar { flex: none; width: 300px; background: var(--bg2); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
   #sidebar[hidden] { display: none; }
-  .side-title { padding: 0 20px; height: 35px; display: flex; align-items: center; font-size: 11px; letter-spacing: .08em; color: #bbbbbb; text-transform: uppercase; }
-  .section { display: flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #cccccc; background: #252526; border-top: 1px solid #3c3c3c; cursor: pointer; user-select: none; }
-  .section svg { transition: transform .1s; transform: rotate(90deg); }
-  .section.closed svg { transform: none; }
-  .section .grow { flex: 1; }
-  .section .prog { font-weight: 400; color: var(--dim); text-transform: none; letter-spacing: 0; }
-  #files { overflow-y: auto; flex: 1; padding-bottom: 12px; }
-  #files.closed { display: none; }
-  .row { display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px 0 22px; color: #cccccc; cursor: pointer; outline-offset: -1px; }
-  .row:hover { background: #2a2d2e; }
-  .row.on { background: #37373d; color: #fff; }
-  .row:focus-visible { outline: 1px solid var(--accent); }
-  .row .ic { color: var(--dim); }
-  .row.master .ic { color: var(--ok); }
-  .row .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .row .star { color: var(--warn); font-size: 11px; }
-  .row .mine { color: var(--kw); font-size: 9px; }
+  .side-head { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 18px 8px; }
+  .side-head h3 { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); }
+  .side-head span { font-size: 12px; color: var(--faint); }
+  #filterbox { padding: 0 12px 8px; position: relative; }
+  #filter { width: 100%; padding: 8px 12px 8px 34px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; outline: 0; color: var(--hi); font: 13px var(--ui); }
+  #filter::placeholder { color: var(--faint); }
+  #filter:focus { border-color: var(--accent-line); }
+  #filterbox svg { position: absolute; left: 24px; top: 10px; color: var(--faint); width: 15px; height: 15px; }
+  #files { overflow-y: auto; flex: 1; padding: 2px 0 14px; }
+  .row { display: flex; align-items: center; gap: 9px; height: 33px; margin: 1px 8px; padding: 0 10px; border-radius: 9px; color: var(--text); cursor: pointer; position: relative; }
   .row[hidden] { display: none; }
-  #filterbox { padding: 6px 10px 6px; }
-  #filterbox[hidden] { display: none; }
-  #filter { width: 100%; padding: 4px 8px; background: #3c3c3c; border: 1px solid transparent; border-radius: 2px; outline: 0; color: #ddd; font: 12px var(--ui); }
-  #filter:focus { border-color: var(--accent); }
-  #nomatch { padding: 8px 22px; color: var(--dim); font-style: italic; }
-  #nomatch[hidden] { display: none; }
-  .row .badge { min-width: 18px; padding: 0 6px; border-radius: 9px; text-align: center; font-size: 11px; line-height: 16px; background: #3a3d41; color: #fff; }
+  .row:hover { background: var(--card); }
+  .row.on { background: var(--accent-soft); color: var(--hi); }
+  .row.on::before { content: ""; position: absolute; left: -8px; top: 7px; bottom: 7px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); }
+  .row .dot { width: 9px; height: 9px; flex: none; border-radius: 50%; border: 1.5px solid var(--faint); }
+  .row.has .dot { background: var(--green); border-color: var(--green); }
+  .row .no { font: 11px var(--mono); color: var(--faint); flex: none; }
+  .row .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--jp); font-size: 14px; }
+  .row .star { color: var(--yellow); font-size: 11px; }
+  .row .mine { color: var(--purple); font-size: 9px; }
+  .row .badge { min-width: 20px; padding: 0 7px; border-radius: 99px; text-align: center; font-size: 11px; line-height: 18px; font-weight: 600; background: rgba(158,206,106,.16); color: var(--green); }
   .row .badge:empty { display: none; }
-  .row .badge.has { background: #2d5a3a; }
-  .row.dirty .name::after { content: " ●"; color: var(--warn); font-size: 9px; }
+  .row.dirty .name::after { content: " •"; color: var(--yellow); }
+  #nomatch { padding: 10px 20px; color: var(--faint); font-style: italic; }
+  #nomatch[hidden] { display: none; }
 
-  /* editor column */
-  #col { flex: 1; display: grid; grid-template-rows: 35px 28px 1fr auto; min-width: 0; min-height: 0; background: var(--bg); }
-  #tabs { display: flex; background: #252526; overflow-x: auto; overflow-y: hidden; }
-  #tabs::-webkit-scrollbar { height: 3px; }
-  .tab { display: flex; align-items: center; gap: 7px; height: 35px; padding: 0 8px 0 12px; background: var(--tab); color: #969696; border-right: 1px solid #252526; cursor: pointer; white-space: nowrap; flex: none; position: relative; }
-  .tab:hover { color: #fff; }
-  .tab.on { background: var(--bg); color: #fff; }
-  .tab.on::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--accent); }
-  .tab .x { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 4px; color: inherit; opacity: 0; }
-  .tab .x svg { width: 14px; height: 14px; }
+  /* ---------- editor column ---------- */
+  #col { flex: 1; display: grid; grid-template-rows: 42px 42px 1fr auto; min-width: 0; min-height: 0; background: var(--bg); }
+  #tabs { display: flex; gap: 3px; padding: 8px 10px 0; background: var(--bg2); overflow-x: auto; overflow-y: hidden; border-bottom: 1px solid var(--line); }
+  #tabs::-webkit-scrollbar { height: 4px; }
+  .tab { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 6px 0 13px; border-radius: 10px 10px 0 0; color: var(--dim); cursor: pointer; white-space: nowrap; flex: none; font-family: var(--jp); font-size: 13px; }
+  .tab .tno { font: 11px var(--mono); color: var(--faint); }
+  .tab:hover { color: var(--hi); background: rgba(255,255,255,.03); }
+  .tab.on { background: var(--bg); color: var(--hi); box-shadow: inset 0 2px 0 var(--accent); }
+  .tab .x { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 6px; opacity: 0; }
+  .tab .x svg { width: 13px; height: 13px; }
   .tab.on .x, .tab:hover .x { opacity: 1; }
-  .tab .x:hover { background: rgba(255,255,255,.12); }
-  .tab .dot { display: none; width: 8px; height: 8px; margin: 0 6px; border-radius: 50%; background: #ccc; }
+  .tab .x:hover { background: rgba(255,255,255,.1); }
+  .tab .dot { display: none; width: 8px; height: 8px; margin: 0 7px; border-radius: 50%; background: var(--yellow); }
   .tab.dirty .x { display: none; }
   .tab.dirty .dot { display: block; }
   .tab.dirty:hover .x { display: grid; }
   .tab.dirty:hover .dot { display: none; }
-  #bar { display: flex; align-items: center; gap: 4px; padding: 0 10px 0 16px; color: #a9a9a9; font-size: 12px; white-space: nowrap; overflow: hidden; }
-  #crumbs { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow: hidden; }
-  #crumbs svg { width: 12px; height: 12px; opacity: .7; flex: none; }
-  #crumbs b { font-weight: 400; color: #d4d4d4; }
-  #tools { display: flex; gap: 4px; flex: none; }
-  #tools[hidden] { display: none; }
-  #tools button { height: 20px; padding: 0 9px; border-radius: 3px; font-size: 11px; color: #b5b5b5; border: 1px solid #3c3c3c; }
-  #tools button:hover { background: rgba(255,255,255,.08); color: #fff; }
-  #tools button[aria-pressed="true"] { background: #04395e; border-color: #0b5a94; color: #fff; }
 
+  #bar { display: flex; align-items: center; gap: 12px; padding: 0 14px 0 18px; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; }
+  #crumbs { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; overflow: hidden; color: var(--faint); font-size: 12px; }
+  #crumbs svg { width: 12px; height: 12px; flex: none; }
+  #crumbs b { font-weight: 500; color: var(--dim); overflow: hidden; text-overflow: ellipsis; }
+  #tools { display: flex; gap: 6px; flex: none; }
+  #tools[hidden] { display: none; }
+  .tbtn { height: 28px; padding: 0 13px; border-radius: 99px; font-size: 12px; color: var(--dim); border: 1px solid var(--line); background: transparent; }
+  .tbtn:hover { color: var(--hi); border-color: var(--accent-line); }
+  .tbtn[aria-pressed="true"], .tbtn.active { background: var(--accent-soft); border-color: var(--accent-line); color: var(--hi); font-weight: 600; }
+
+  /* ---------- split: examples | practice ---------- */
   #stage { position: relative; min-height: 0; }
   #split { position: absolute; inset: 0; display: flex; flex-direction: column; }
   #split.h { flex-direction: row; }
   #split[hidden], #welcome[hidden] { display: none; }
-  #ref { flex: 0 0 var(--ref, 45%); min-width: 0; min-height: 0; overflow: auto; background: #1a1a1a; font: 14px/var(--LH) var(--mono); counter-reset: rl; }
+  #ref { flex: 0 0 var(--ref, 45%); min-width: 0; min-height: 0; overflow: auto; padding: 18px 22px 36px; font-family: var(--jp); counter-reset: ex; }
   #ref.off, #ref.off + #splitter { display: none; }
-  #splitter { flex: none; background: var(--border); position: relative; z-index: 2; touch-action: none; }
-  #split.v #splitter { height: 5px; cursor: row-resize; }
-  #split.h #splitter { width: 5px; cursor: col-resize; }
+  #splitter { flex: none; background: var(--line); position: relative; z-index: 2; touch-action: none; transition: background .15s; }
+  #split.v #splitter { height: 6px; cursor: row-resize; }
+  #split.h #splitter { width: 6px; cursor: col-resize; }
   #splitter:hover, #splitter.drag { background: var(--accent); }
-  #scroll { flex: 1 1 0; min-width: 0; min-height: 0; overflow: auto; font: 14px/var(--LH) var(--mono); }
+
+  .gcard { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+  .g-top { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; }
+  .g-title { margin: 0; font: 700 28px/1.2 var(--jp); color: var(--hi); }
+  .g-read { color: var(--dim); font-size: 15px; }
+  .g-tags { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font: 600 11px var(--ui); padding: 3px 9px; border-radius: 99px; background: var(--card2); color: var(--dim); border: 1px solid var(--line); }
+  .chip.lvl { color: var(--accent); } .chip.master { color: var(--yellow); } .chip.mine { color: var(--purple); }
+  .g-mean { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+  .mean { padding: 4px 12px; border-radius: 9px; background: var(--accent-soft); color: var(--hi); font: 14px var(--ui); }
+  .g-pat { display: flex; gap: 12px; margin-top: 14px; align-items: flex-start; }
+  .lbl { font: 700 10.5px var(--ui); text-transform: uppercase; letter-spacing: .08em; color: var(--faint); padding-top: 6px; width: 58px; flex: none; }
+  .g-pat code { display: block; width: fit-content; max-width: 100%; margin-bottom: 6px; padding: 4px 10px; font: 13.5px var(--mono); color: var(--teal); background: #171826; border: 1px solid var(--line); border-radius: 8px; white-space: pre-wrap; font-family: var(--jp), var(--mono); }
+  .g-warn { display: flex; gap: 10px; margin-top: 14px; padding: 9px 13px; border-radius: 11px; font-size: 13.5px; color: var(--yellow); background: rgba(224,175,104,.1); border: 1px solid rgba(224,175,104,.35); }
+
+  .sec { display: flex; align-items: center; gap: 9px; margin: 26px 2px 11px; font: 700 11.5px var(--ui); letter-spacing: .09em; text-transform: uppercase; color: var(--dim); }
+  .sec b { padding: 1px 9px; border-radius: 99px; background: var(--card2); color: var(--hi); font-size: 11px; letter-spacing: 0; }
+  .empty-ex { margin-top: 22px; padding: 18px; text-align: center; color: var(--faint); border: 1px dashed var(--line); border-radius: 14px; }
+  .ex { display: flex; gap: 14px; padding: 12px 16px 12px 14px; margin-bottom: 9px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; transition: border-color .15s; }
+  .ex:hover { border-color: var(--accent-line); }
+  .ex .n { flex: none; width: 26px; height: 26px; margin-top: 7px; border-radius: 50%; background: var(--card2); color: var(--dim); font: 600 12px/26px var(--ui); text-align: center; }
+  .ex-body { min-width: 0; flex: 1; }
+  .ja { font-size: 18px; line-height: 2.1; color: var(--hi); overflow-wrap: anywhere; }
+  .ja mark { color: #b4cbff; background: rgba(122,162,247,.2); font-weight: 700; padding: 1px 3px; border-radius: 6px;
+             text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; text-decoration-color: rgba(122,162,247,.75); }
+  .en { color: var(--dim); font: 14px/1.55 var(--ui); margin-top: 1px; }
+  .enote { margin-top: 5px; font: 12.5px/1.45 var(--ui); color: var(--faint); }
+  .enote::before { content: "💡 "; filter: grayscale(.4); }
+
+  /* furigana */
+  ruby { ruby-position: over; ruby-align: center; }
+  rt { font: 500 .56em var(--jp); letter-spacing: .02em; color: var(--teal); opacity: 0; transition: opacity .12s; user-select: none; }
+  #ref.fg-hover ruby:hover rt, #ref.fg-always rt, #furipop rt { opacity: 1; }
+  /* hover mode: readings float above the word, so showing/hiding them never shifts the text */
+  #ref.fg-hover ruby { position: relative; }
+  #ref.fg-hover rt { position: absolute; left: 50%; bottom: calc(100% - .3em); transform: translateX(-50%); white-space: nowrap; line-height: 1; pointer-events: none; padding: 1px 6px; border-radius: 6px; background: var(--card2); box-shadow: 0 2px 8px rgba(0,0,0,.35); z-index: 3; }
+  #ref.fg-off rt { display: none; }
+  #ref.fg-off .ja { line-height: 1.75; }
+  #ref.cloze .ex:not(:hover) mark { color: transparent; background: rgba(122,162,247,.32); text-decoration-color: transparent; }
+  #ref.cloze .ex:not(:hover) mark rt { opacity: 0; }
+  #ref.no-tr .ex:not(:hover) .en { visibility: hidden; }
+
+  .notes { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 6px 18px 14px; }
+  .notes h4 { margin: 14px 0 6px; font: 700 10.5px var(--ui); text-transform: uppercase; letter-spacing: .08em; color: var(--faint); }
+  .notes ul { margin: 0; padding-left: 18px; color: var(--text); font: 13.5px/1.6 var(--ui); }
+  .notes li::marker { color: var(--faint); }
+  .notes a.lnk { color: #8fb4ff; text-decoration: none; border-bottom: 1px dotted rgba(143,180,255,.5); }
+  .notes a.lnk:hover { color: #b9d0ff; border-bottom-style: solid; }
+  .notes small { color: var(--faint); margin-left: 6px; }
+
+  /* practice pane */
+  #prac { flex: 1 1 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--bg); }
+  .prac-head { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 16px 0 18px; flex: none; border-bottom: 1px solid var(--line); }
+  .ph-title { color: var(--hi); font-weight: 600; font-size: 13px; }
+  .ph-path { color: var(--faint); font: 11.5px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ph-count { margin-left: auto; flex: none; }
+  #scroll { flex: 1 1 0; min-height: 0; min-width: 0; overflow: auto; font: 17px/var(--LH) var(--jp); }
   .code { width: 100%; display: flex; flex-direction: column; min-height: 100%; }
-  .line { display: flex; }
-  .line .ln, .gutter .ln { width: 64px; flex: none; text-align: right; padding-right: 22px; color: var(--ln); height: var(--LH); user-select: none; }
-  .line .tx { flex: 1; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; padding-right: 24px; color: var(--com); }
-  .tx .c { color: var(--com); }
-  .tx .ttl { color: var(--typ); font-weight: 700; }
-  .tx .kw { color: var(--kw); }
-  .tx .str { color: var(--str); }
-
-  /* reference pane: line numbers come from a CSS counter so they stay consistent when rows are blanked */
-  #ref .rl { counter-increment: rl; }
-  #ref .rl .ln { width: 48px; padding-right: 16px; }
-  #ref .rl .ln::before { content: counter(rl); }
-  #ref .rl .tx { padding-left: calc(var(--hang, 0ch) + 2px); text-indent: calc(-1 * var(--hang, 0ch)); }
-  #ref .head { padding: 6px 0 4px; }
-  #ref .ja { color: #e6e6e6; }
-  #ref .ja mark { background: rgba(86,156,214,.18); color: #7cc0ff; font-weight: 600; border-radius: 3px; padding: 0 1px; box-shadow: inset 0 -2px 0 rgba(86,156,214,.6); }
-  #ref .tr .tx { color: var(--com); font-style: italic; }
-  #ref .nt .tx { color: #7f8c6d; font-size: 12.5px; }
-  #ref .ex { border-top: 1px solid #262626; padding: 3px 0; }
-  #ref .ex:hover { background: #202020; }
-  #ref.no-tr .ex:not(:hover) .tr .tx { visibility: hidden; }
-  #ref.cloze .ex:not(:hover) .ja mark { color: transparent; text-shadow: none; background: rgba(86,156,214,.35); box-shadow: none; }
-  #ref .empty .tx { font-style: italic; }
-  #ref a.lnk { color: #6cb6ff; text-decoration: none; border-bottom: 1px dotted rgba(108,182,255,.5); }
-  #ref a.lnk:hover { color: #9fd0ff; border-bottom-style: solid; }
-  #ref .warn .tx { color: #d7ba7d; }
-  .body { display: flex; flex: 1; position: relative; }
+  .body { display: flex; flex: 1; position: relative; padding-top: 6px; }
   .gutter { flex: none; }
-  .gutter .ln.on { color: var(--ln-on); }
+  .gutter .ln { width: 58px; height: var(--LH); padding-right: 18px; text-align: right; color: var(--faint); font: 12px/var(--LH) var(--mono); user-select: none; }
+  .gutter .ln.on { color: var(--text); }
   .field { position: relative; flex: 1; min-width: 0; }
-  .curline { position: absolute; left: 0; right: 0; height: var(--LH); background: var(--cur); border-top: 1px solid #2f2f2f; border-bottom: 1px solid #2f2f2f; pointer-events: none; }
-  #ta { position: relative; display: block; width: 100%; margin: 0; padding: 0 24px 0 0; border: 0; outline: 0; background: transparent; color: var(--fg);
-        font: inherit; line-height: var(--LH); tab-size: 4; white-space: pre; overflow-x: auto; overflow-y: hidden; resize: none; caret-color: #aeafad; }
-  #ta::placeholder { color: #5c5c5c; font-style: italic; }
+  .curline { position: absolute; left: 0; right: 0; height: var(--LH); background: rgba(122,162,247,.075); border-radius: 0 8px 8px 0; pointer-events: none; }
+  #ta { position: relative; display: block; width: 100%; margin: 0; padding: 0 24px 0 4px; border: 0; outline: 0; background: transparent; color: var(--hi);
+        font: inherit; line-height: var(--LH); tab-size: 4; white-space: pre; overflow-x: auto; overflow-y: hidden; resize: none; caret-color: var(--accent); }
+  #ta::placeholder { color: var(--faint); font-style: italic; }
 
-  #welcome { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 22px; color: #6b6b6b; text-align: center; }
-  #welcome .mark { font-size: 96px; line-height: 1; color: #2f2f2f; font-family: var(--ui); }
+  #furipop { position: fixed; z-index: 40; display: none; max-width: min(760px, 92vw); padding: 4px 16px 6px; border-radius: 14px; background: var(--card2); border: 1px solid var(--accent-line);
+             box-shadow: 0 12px 34px rgba(0,0,0,.5); font: 19px/2.1 var(--jp); color: var(--hi); pointer-events: none; white-space: pre-wrap; }
+
+  #welcome { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 26px; text-align: center; color: var(--dim); padding: 24px; }
+  #welcome .mark { width: 92px; height: 92px; border-radius: 28px; display: grid; place-items: center; font: 700 54px var(--jp); color: #14151f; background: linear-gradient(135deg, var(--accent), var(--purple)); }
+  #welcome h1 { margin: 0; color: var(--hi); font-size: 22px; }
   #welcome table { border-collapse: collapse; }
-  #welcome td { padding: 5px 10px; text-align: left; }
-  #welcome td:first-child { text-align: right; }
-  kbd { font: 11px var(--ui); padding: 1px 6px; border: 1px solid #4a4a4a; border-bottom-width: 2px; border-radius: 4px; background: #2a2a2a; color: #bbb; }
+  #welcome td { padding: 6px 12px; text-align: left; }
+  #welcome td:first-child { text-align: right; white-space: nowrap; }
+  kbd { font: 11px var(--ui); padding: 2px 7px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; background: var(--card); color: var(--text); }
 
-  /* panel */
-  #panel { height: 128px; display: flex; flex-direction: column; border-top: 1px solid var(--border); background: var(--bg); }
+  /* ---------- output panel + status bar ---------- */
+  #panel { height: 140px; display: flex; flex-direction: column; border-top: 1px solid var(--line); background: var(--bg2); }
   #panel[hidden] { display: none; }
-  #panel header { display: flex; align-items: center; height: 35px; padding: 0 12px 0 20px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #e7e7e7; flex: none; }
-  #panel header span { padding: 4px 0; border-bottom: 1px solid #e7e7e7; }
-  #panel header .grow { flex: 1; border: 0; }
-  #panel header button { color: #aaa; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 4px; }
-  #panel header button:hover { background: rgba(255,255,255,.1); color: #fff; }
-  #panel header svg { width: 14px; height: 14px; }
-  #log { flex: 1; overflow: auto; padding: 0 20px 8px; font: 12px/1.65 var(--mono); }
-  #log .t { color: var(--dim); }
-  #log .ok { color: var(--ok); }
-  #log .err { color: var(--err); }
-  #log .info { color: var(--kw); }
+  #panel header { display: flex; align-items: center; height: 34px; padding: 0 12px 0 18px; font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); flex: none; }
+  #panel header .grow { flex: 1; }
+  #panel header button { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; color: var(--dim); }
+  #panel header button:hover { background: var(--card); color: var(--hi); }
+  #panel header svg { width: 13px; height: 13px; }
+  #log { flex: 1; overflow: auto; padding: 0 18px 8px; font: 12px/1.7 var(--mono); }
+  #log .t { color: var(--faint); } #log .ok { color: var(--green); } #log .err { color: var(--pink); } #log .info { color: var(--accent); }
 
-  /* status bar */
-  #status { display: flex; align-items: center; justify-content: space-between; background: var(--accent); color: #fff; font-size: 12px; }
-  #status.err { background: #c5391a; }
+  #status { display: flex; align-items: center; justify-content: space-between; padding: 0 6px; background: var(--bg2); border-top: 1px solid var(--line); color: var(--dim); font-size: 12px; }
   #status > div { display: flex; height: 100%; }
-  #status .item { display: flex; align-items: center; gap: 5px; padding: 0 9px; white-space: nowrap; }
-  #status button.item:hover { background: rgba(255,255,255,.18); }
+  #status .item { display: flex; align-items: center; gap: 6px; padding: 0 10px; white-space: nowrap; }
+  #status button.item:hover { background: var(--card); color: var(--hi); border-radius: 6px; }
   #status .item svg { width: 14px; height: 14px; }
+  #savestate.ok { color: var(--green); } #savestate.dirty { color: var(--yellow); } #savestate.err { color: var(--pink); font-weight: 600; }
 
-  /* quick open */
-  #qo { position: fixed; inset: 0; z-index: 10; display: flex; justify-content: center; align-items: flex-start; padding-top: 12vh; }
+  /* ---------- quick open + offline ---------- */
+  #qo { position: fixed; inset: 0; z-index: 50; display: flex; justify-content: center; align-items: flex-start; padding-top: 12vh; background: rgba(8,9,16,.55); backdrop-filter: blur(3px); }
   #qo[hidden] { display: none; }
-  .qo-box { width: min(600px, 92vw); background: #252526; border: 1px solid #454545; border-radius: 6px; box-shadow: 0 8px 28px rgba(0,0,0,.55); padding: 6px; }
-  .qo-box input { width: 100%; padding: 6px 8px; background: #3c3c3c; border: 1px solid #007fd4; border-radius: 3px; outline: 0; color: #fff; font: 13px var(--ui); }
-  .qo-box ul { list-style: none; margin: 6px 0 0; padding: 0; max-height: 330px; overflow-y: auto; }
-  .qo-box li { display: flex; gap: 12px; align-items: baseline; padding: 3px 8px; height: 26px; border-radius: 3px; cursor: pointer; overflow: hidden; white-space: nowrap; }
-  .qo-box li span { color: #ddd; flex: none; }
-  .qo-box li em { font-style: normal; color: var(--dim); font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
-  .qo-box li.on { background: #04395e; }
-  .qo-box li.none { color: var(--dim); cursor: default; }
+  .qo-box { width: min(640px, 92vw); background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.6); padding: 10px; }
+  .qo-box input { width: 100%; padding: 11px 14px; background: var(--bg); border: 1px solid var(--accent-line); border-radius: 11px; outline: 0; color: var(--hi); font: 15px var(--ui); }
+  .qo-box ul { list-style: none; margin: 8px 0 0; padding: 0; max-height: 340px; overflow-y: auto; }
+  .qo-box li { display: flex; gap: 12px; align-items: baseline; padding: 7px 12px; border-radius: 9px; cursor: pointer; overflow: hidden; white-space: nowrap; }
+  .qo-box li .no { font: 11px var(--mono); color: var(--faint); }
+  .qo-box li span.t { color: var(--hi); flex: none; font: 15px var(--jp); }
+  .qo-box li em { font-style: normal; color: var(--dim); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; }
+  .qo-box li.on { background: var(--accent-soft); }
+  .qo-box li.none { color: var(--faint); cursor: default; }
 
-  /* offline notice */
-  #offline { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: var(--bg); padding: 24px; }
+  #offline { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: var(--bg); padding: 24px; }
   #offline[hidden] { display: none; }
   #offline div { max-width: 520px; }
-  #offline h2 { margin: 0 0 8px; font-weight: 600; color: var(--err); }
-  #offline pre { background: #111; border: 1px solid var(--border); padding: 12px 14px; border-radius: 4px; font: 13px var(--mono); color: var(--ok); }
-  #offline p { color: #bbb; line-height: 1.6; }
+  #offline h2 { margin: 0 0 8px; font-weight: 700; color: var(--pink); }
+  #offline pre { background: var(--bg2); border: 1px solid var(--line); padding: 12px 16px; border-radius: 10px; font: 14px var(--mono); color: var(--green); }
+  #offline p { color: var(--dim); line-height: 1.65; }
 
-  @media (max-width: 720px) { #sidebar { width: 220px; } }
+  @media (max-width: 820px) { #sidebar { width: 230px; } .overall { display: none; } .brand small { display: none; } }
 </style>
 </head>
 <body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-file" viewBox="0 0 16 16"><path d="M3.5 1.5h6l3 3v10h-9z M9.5 1.5v3h3 M5.5 8h5 M5.5 10.5h5"/></symbol>
-  <symbol id="i-files" viewBox="0 0 24 24"><path d="M8 3h7l4 4v11H8z M15 3v4h4 M5 7v14h11"/></symbol>
-  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L20 20"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></symbol>
   <symbol id="i-chev" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4"/></symbol>
   <symbol id="i-x" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
-  <symbol id="i-panel" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 9.5h12"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M2 9.5h12"/></symbol>
 </svg>
 
 <div id="app">
-  <div id="titlebar"><span><b>n2_grammar</b> — 文法練習 — Practice</span></div>
+  <header id="top">
+    <div class="brand">
+      <div class="logo">文</div>
+      <div><b>文法練習</b><small>N2 grammar · write your own sentences</small></div>
+    </div>
+    <div class="overall" title="Grammar points you've written at least one sentence for">
+      <div class="bar"><i id="overall-fill"></i></div><span id="overall-text"></span>
+    </div>
+    <button id="gray" class="switch" role="switch" aria-checked="true" title="Grayscale mode (Alt+G): turn on when others might see your screen">
+      <span class="track"></span><span>Grayscale</span>
+    </button>
+  </header>
 
   <div id="main">
     <nav id="activity" aria-label="Activity bar">
-      <button id="act-files" class="on" title="Explorer (Ctrl+B)" aria-label="Toggle explorer"><svg class="ic"><use href="#i-files"/></svg></button>
+      <button id="act-files" class="on" title="Grammar list (Ctrl+B)" aria-label="Toggle grammar list"><svg class="ic"><use href="#i-list"/></svg></button>
       <button id="act-search" title="Go to grammar point (Ctrl+P)" aria-label="Go to grammar point"><svg class="ic"><use href="#i-search"/></svg></button>
     </nav>
 
     <aside id="sidebar">
-      <div class="side-title">Explorer</div>
-      <div class="section" id="folder"><svg class="ic"><use href="#i-chev"/></svg><span>sentences</span><span class="grow"></span><span class="prog" id="prog"></span></div>
-      <div id="filterbox"><input id="filter" type="text" placeholder="Filter files…  (try “mine” for your original list)" aria-label="Filter grammar files" autocomplete="off" spellcheck="false"></div>
+      <div class="side-head"><h3>Grammar points</h3><span id="prog"></span></div>
+      <div id="filterbox">
+        <svg class="ic"><use href="#i-search"/></svg>
+        <input id="filter" type="text" placeholder="Filter…  (try “mine”)" aria-label="Filter grammar points" autocomplete="off" spellcheck="false">
+      </div>
       <div id="files" role="list"></div>
-      <div id="nomatch" hidden>No files match.</div>
+      <div id="nomatch" hidden>No grammar points match.</div>
     </aside>
 
     <div id="col">
@@ -233,31 +294,40 @@
       <div id="bar">
         <div id="crumbs"></div>
         <div id="tools" hidden>
-          <button id="t-ref" aria-pressed="true" title="Show the grammar notes and example sentences">Examples</button>
-          <button id="t-tr" aria-pressed="true" title="Show English translations (hover a sentence to peek when off)">Translations</button>
-          <button id="t-cloze" aria-pressed="false" title="Hide the target grammar in each example (hover a sentence to peek)">Cloze</button>
+          <button class="tbtn" id="t-ref" aria-pressed="true" title="Show the grammar notes and example sentences (Ctrl+E)">Examples</button>
+          <button class="tbtn" id="t-tr" aria-pressed="true" title="Show English translations (hover a sentence to peek when off)">Translations</button>
+          <button class="tbtn" id="t-cloze" aria-pressed="false" title="Hide the target grammar in each example (hover a sentence to peek)">Cloze</button>
+          <button class="tbtn" id="t-furi" title="Furigana: Hover shows a word's reading when you point at it. Click to cycle Hover / Always / Off">Furigana: Hover</button>
         </div>
       </div>
       <div id="stage">
         <div id="split" hidden>
           <section id="ref" aria-label="Grammar notes and example sentences"></section>
           <div id="splitter" role="separator" aria-label="Resize examples pane"></div>
-          <div id="scroll"></div>
+          <div id="prac">
+            <div class="prac-head">
+              <span class="ph-title">✎ Your sentences</span>
+              <span class="ph-path" id="ph-path"></span>
+              <span class="chip ph-count" id="ph-count"></span>
+            </div>
+            <div id="scroll"></div>
+          </div>
         </div>
         <div id="welcome">
           <div class="mark">文</div>
+          <h1>Pick a grammar point to start</h1>
           <table>
-            <tr><td><kbd>Ctrl</kbd> + <kbd>P</kbd></td><td>Go to grammar point</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>P</kbd></td><td>Jump to any grammar point</td></tr>
+            <tr><td><kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></td><td>Previous / next point</td></tr>
             <tr><td><kbd>Ctrl</kbd> + <kbd>S</kbd></td><td>Save now (it also autosaves)</td></tr>
-            <tr><td><kbd>Ctrl</kbd> + <kbd>E</kbd></td><td>Show / hide the examples pane</td></tr>
-            <tr><td><kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></td><td>Previous / next grammar point</td></tr>
-            <tr><td><kbd>Ctrl</kbd> + <kbd>B</kbd></td><td>Toggle explorer</td></tr>
-            <tr><td><kbd>Ctrl</kbd> + <kbd>J</kbd></td><td>Toggle output panel</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>E</kbd></td><td>Show / hide the examples</td></tr>
+            <tr><td><kbd>Alt</kbd> + <kbd>G</kbd></td><td>Grayscale on / off</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>B</kbd> / <kbd>J</kbd></td><td>Toggle the list / the save log</td></tr>
           </table>
         </div>
       </div>
-      <section id="panel" aria-label="Output">
-        <header><span>Output</span><span class="grow"></span><button id="panel-x" title="Close panel (Ctrl+J)" aria-label="Close panel"><svg class="ic"><use href="#i-x"/></svg></button></header>
+      <section id="panel" aria-label="Output" hidden>
+        <header><span>Save log</span><span class="grow"></span><button id="panel-x" title="Close (Ctrl+J)" aria-label="Close log"><svg class="ic"><use href="#i-x"/></svg></button></header>
         <div id="log" role="log"></div>
       </section>
     </div>
@@ -270,14 +340,14 @@
     </div>
     <div>
       <span class="item" id="pos"></span>
-      <span class="item" id="count"></span>
       <span class="item" id="total"></span>
       <span class="item">UTF-8</span>
-      <span class="item">Japanese</span>
-      <button class="item" id="panel-toggle" title="Toggle output panel (Ctrl+J)" aria-label="Toggle output panel"><svg class="ic"><use href="#i-panel"/></svg></button>
+      <button class="item" id="panel-toggle" title="Show the save log (Ctrl+J)" aria-label="Toggle save log"><svg class="ic"><use href="#i-panel"/></svg></button>
     </div>
   </footer>
 </div>
+
+<div id="furipop" role="tooltip"></div>
 
 <div id="qo" hidden>
   <div class="qo-box">
@@ -289,7 +359,7 @@
 <div id="offline" hidden>
   <div>
     <h2>Can't reach the save server</h2>
-    <p>This page stores your sentences as files in the folder, which needs the tiny helper server running. Open a terminal in this folder and run:</p>
+    <p>This page stores your sentences as files in the folder, which needs the small helper server running. Open a terminal in this folder and run:</p>
     <pre>python3 server.py</pre>
     <p>It opens this page at <b>http://localhost:8765</b>. If you opened <code>index.html</code> directly from the file manager, use that address instead.</p>
   </div>
@@ -299,12 +369,13 @@
 (() => {
   'use strict';
 
-  const LH = 24;
   const $ = (s, r = document) => r.querySelector(s);
-  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const pad3 = n => String(n).padStart(3, '0');
   const count = t => (t || '').split('\n').filter(l => l.trim()).length;
   const clock = () => new Date().toLocaleTimeString('en-GB');
+  const KANJI = /[㐀-䶿一-鿿豈-﫿々〆〇ヶ]/;
+  const LH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--LH')) || 30;
 
   const store = {
     get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
@@ -319,8 +390,23 @@
   const timers = {}, chain = {};
   let open = [], active = null;
   let saving = 0, saveError = false;
-  let ta = null, scroller = $('#scroll'), gutterEl = null, curEl = null;
+  let ta = null, gutterEl = null, curEl = null;
   let gutterLines = 0, curLine = 0;
+  const scroller = $('#scroll');
+
+  // what the user chose, independent of auto-hiding on narrow windows
+  const prefs = { side: true, panel: false, ref: true, tr: true, cloze: false, furi: 'hover', split: null };
+  const FURI = ['hover', 'always', 'off'];
+
+  /* ---------- grayscale ---------- */
+  const grayBtn = $('#gray');
+  function setGray(on, remember = true) {
+    document.documentElement.classList.toggle('gray', on);
+    grayBtn.setAttribute('aria-checked', String(on));
+    if (remember) store.set('gp2:gray', on);
+  }
+  grayBtn.addEventListener('click', () => setGray(!document.documentElement.classList.contains('gray')));
+  setGray(document.documentElement.classList.contains('gray'), false);
 
   /* ---------- log / status ---------- */
   function log(msg, kind = '') {
@@ -334,34 +420,38 @@
 
   function refreshStatus() {
     const el = $('#savestate');
-    $('#status').classList.toggle('err', saveError);
-    if (saveError) el.textContent = '⚠ Not saved to folder — draft kept in browser';
-    else if (saving) el.textContent = '↻ Saving…';
-    else if (dirty.size) el.textContent = '● Unsaved changes';
-    else el.textContent = '✓ All changes saved';
+    let cls = 'ok', txt = '✓ All changes saved';
+    if (saveError) { cls = 'err'; txt = '⚠ Not saved to the folder — draft kept in this browser'; }
+    else if (saving) { cls = 'dirty'; txt = '↻ Saving…'; }
+    else if (dirty.size) { cls = 'dirty'; txt = '● Unsaved changes'; }
+    el.className = 'item ' + cls; el.textContent = txt;
   }
 
   function refreshTotals() {
     const done = items.filter(g => count(texts[g.id]) > 0).length;
     const sentences = items.reduce((n, g) => n + count(texts[g.id]), 0);
     $('#prog').textContent = `${done}/${items.length}`;
-    $('#total').textContent = `Practised ${done}/${items.length} · ${sentences} sentence${sentences === 1 ? '' : 's'}`;
-    $('#count').textContent = active == null ? '' : `This file: ${count(texts[active])}`;
+    $('#overall-text').textContent = `${done} / ${items.length} practised`;
+    $('#overall-fill').style.width = (items.length ? done / items.length * 100 : 0) + '%';
+    $('#total').textContent = `${sentences} sentence${sentences === 1 ? '' : 's'} written`;
+    const n = active == null ? 0 : count(texts[active]);
+    $('#ph-count').textContent = `${n} written`;
   }
 
   /* ---------- explorer ---------- */
   const rows = new Map();
+  const hay = g => g._hay || (g._hay = `${g.id} ${pad3(g.id)} ${g.title} ${g.reading} ${g.meanings.join(' ')} ${g.status} ${g.mine ? 'mine ◆ original' : ''}`.toLowerCase());
 
   function buildExplorer() {
     const list = $('#files');
     list.innerHTML = '';
     for (const g of items) {
       const el = document.createElement('div');
-      el.className = 'row' + (g.status === 'Master' ? ' master' : '');
+      el.className = 'row';
       el.tabIndex = 0;
       el.setAttribute('role', 'listitem');
       el.title = `${g.file}\n${g.meanings.join(', ')}\n${g.status}${g.mine ? ' · from your original list' : ''}`;
-      el.innerHTML = `<svg class="ic"><use href="#i-file"/></svg><span class="name">${esc(g.file)}</span>` +
+      el.innerHTML = `<span class="dot"></span><span class="no">${pad3(g.id)}</span><span class="name">${esc(g.title)}</span>` +
         (g.mine ? '<span class="mine" title="From your original list">◆</span>' : '') +
         (g.status === 'Master' ? '<span class="star" title="Master">★</span>' : '') + '<span class="badge"></span>';
       el.addEventListener('click', () => activate(g.id));
@@ -376,13 +466,10 @@
     const n = count(texts[id]);
     el.classList.toggle('on', id === active);
     el.classList.toggle('dirty', dirty.has(id));
-    const b = $('.badge', el);
-    b.textContent = n || '';
-    b.classList.toggle('has', n > 0);
+    el.classList.toggle('has', n > 0);
+    $('.badge', el).textContent = n || '';
   }
   const updateAllRows = () => items.forEach(g => updateRow(g.id));
-
-  const hay = g => g._hay || (g._hay = `${g.id} ${pad3(g.id)} ${g.title} ${g.reading} ${g.meanings.join(' ')} ${g.status} ${g.mine ? 'mine ◆ original' : ''}`.toLowerCase());
 
   function applyFilter() {
     const q = $('#filter').value.trim().toLowerCase();
@@ -401,8 +488,8 @@
       t.className = 'tab' + (id === active ? ' on' : '') + (dirty.has(id) ? ' dirty' : '');
       t.setAttribute('role', 'tab');
       t.title = 'sentences/' + g.file;
-      t.innerHTML = `<svg class="ic"><use href="#i-file"/></svg><span>${esc(g.file)}</span>` +
-        `<button class="x" aria-label="Close ${esc(g.file)}"><svg class="ic"><use href="#i-x"/></svg></button><i class="dot"></i>`;
+      t.innerHTML = `<span class="tno">${pad3(g.id)}</span><span>${esc(g.title)}</span>` +
+        `<button class="x" aria-label="Close ${esc(g.title)}"><svg class="ic"><use href="#i-x"/></svg></button><i class="dot"></i>`;
       t.addEventListener('click', e => e.target.closest('.x') ? closeTab(id) : activate(id));
       t.addEventListener('auxclick', e => { if (e.button === 1) closeTab(id); });
       bar.appendChild(t);
@@ -418,11 +505,7 @@
     c.innerHTML = `sentences <svg class="ic"><use href="#i-chev"/></svg> <b>${esc(byId.get(active).file)}</b>`;
   }
 
-  // what the user chose, independent of auto-hiding on narrow windows
-  const prefs = { side: true, panel: true, ref: true, tr: true, cloze: false, split: null };
-  function persistSession() {
-    store.set('gp2:session', { open, active, prefs });
-  }
+  function persistSession() { store.set('gp2:session', { open, active, prefs }); }
 
   function rememberView() {
     if (active == null || !ta) return;
@@ -456,63 +539,121 @@
     } else { persistSession(); renderTabs(); }
   }
 
-  /* ---------- editor ---------- */
-  // Reference pane: grammar notes as a doc-comment, then the example sentences.
-  // Sentences carry the target grammar as {{...}}, rendered as a highlight (or hidden in cloze mode).
-  function renderRef(g) {
-    // hang = characters of prefix, so wrapped lines line up under the value
-    const row = (h, cls = '', hang = 0) => `<div class="line rl ${cls}"><span class="ln"></span><span class="tx" style="--hang:${hang}ch">${h}</span></div>`;
-    const c = t => `<span class="c">${t}</span>`;
-    const tagRow = (k, vals, cls = '') => vals.map((v, i) => row(
-      c(' * ') + (i ? ' '.repeat(9) : `<span class="kw">@${k}</span>${' '.repeat(Math.max(1, 8 - k.length))}`) + `<span class="str">${esc(v)}</span>`, cls, 12)).join('');
-    const ja = s => s.split(/\{\{(.+?)\}\}/).map((p, i) => i % 2 ? `<mark>${esc(p)}</mark>` : esc(p)).join('');
-    const okUrl = u => /^https?:\/\//i.test(u || '');
+  /* ---------- furigana ---------- */
+  // The server (SudachiPy) returns [[text, reading|null], ...] per sentence; readings only sit on kanji.
+  const furiCache = new Map();
+  let furiDownAt = 0;
 
-    let h = row(c('/**'), 'head') + row(c(' * ') + `<span class="ttl">${esc(g.title)}</span>` + (g.reading ? c(`  (${esc(g.reading)})`) : ''));
-    h += tagRow('meaning', [g.meanings.join('  ·  ')]);
-    h += tagRow('pattern', g.structure);
-    h += tagRow('careful', g.notes, 'warn');
-    h += tagRow('level', [`${g.level}  ·  ${g.status}`]);
-    h += row(c(' */'));
-    h += row('', 'blank');
-    if (!g.examples.length) h += row(c('// no example sentences for this point in the Bunpro deck — write your own below'), 'empty', 3);
-    else {
-      h += row(c(`// ── ${g.examples.length} examples ──`));
-      h += g.examples.map(e => `<div class="ex">` + row(ja(e.ja), 'ja') + row(c('// ↳ ' + esc(e.en)), 'tr', 5) +
-        (e.note ? row(c('//   ' + esc(e.note)), 'nt', 5) : '') + `</div>`).join('');
+  async function furigana(list) {
+    const need = [...new Set(list)].filter(t => !furiCache.has(t));
+    if (need.length && Date.now() - furiDownAt > 10000) {
+      try {
+        const r = await fetch('/api/furigana', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ texts: need }) });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const { results } = await r.json();
+        if (furiCache.size > 4000) furiCache.clear();
+        need.forEach((t, i) => furiCache.set(t, results[i]));
+        furiDownAt = 0;
+      } catch (e) {
+        if (!furiDownAt) log(`furigana unavailable (${e.message}). Is ./vendor intact and server.py running?`, 'err');
+        furiDownAt = Date.now();
+      }
     }
-    if (g.nuance.length || g.books.length || g.links.length) {
-      h += row('', 'blank') + row(c('// ── notes & links ──'));
-      h += tagRow('nuance', g.nuance);
-      h += tagRow('source', g.books);
-      h += g.links.map((l, i) => row(c(' * ') + (i ? ' '.repeat(9) : `<span class="kw">@link</span>    `) +
-        (okUrl(l.url) ? `<a class="lnk" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label || l.site || l.url)}</a>` : `<span class="str">${esc(l.label)}</span>`) +
-        (l.site && l.label ? c(`  — ${esc(l.site)}`) : ''), '', 12)).join('');
-    }
-    h += row('', 'blank');
-    $('#ref').innerHTML = h;
-    $('#ref').scrollTop = 0;
+    return list.map(t => furiCache.get(t) || null);
   }
 
+  const charsPlain = text => Array.from(text, ch => [ch, false]);
+  function charsMarked(ja) {          // "法律{{上}}、…" -> [[ch, highlighted], …]
+    const out = []; let hl = false;
+    for (const part of ja.split(/(\{\{|\}\})/)) {
+      if (part === '{{') hl = true; else if (part === '}}') hl = false;
+      else for (const ch of part) out.push([ch, hl]);
+    }
+    return out;
+  }
+
+  function render(chars, segs) {
+    const pieces = [];                 // {html, hl}
+    const ok = segs && segs.map(s => s[0]).join('') === chars.map(c => c[0]).join('');
+    if (!ok) for (const [ch, h] of chars) pieces.push({ html: esc(ch), hl: h });
+    else {
+      let pos = 0;
+      for (const [text, rd] of segs) {
+        const slice = chars.slice(pos, pos += Array.from(text).length);
+        if (rd) pieces.push({ html: `<ruby>${esc(text)}<rt>${esc(rd)}</rt></ruby>`, hl: slice.some(c => c[1]) });
+        else for (const [ch, h] of slice) pieces.push({ html: esc(ch), hl: h });
+      }
+    }
+    let out = '', run = [], runHl = false;
+    const flush = () => { if (run.length) out += runHl ? `<mark>${run.join('')}</mark>` : run.join(''); run = []; };
+    for (const p of pieces) { if (p.hl !== runHl) { flush(); runHl = p.hl; } run.push(p.html); }
+    flush();
+    return out;
+  }
+
+  async function fillFurigana(g) {
+    if (prefs.furi === 'off' || !g.examples.length) return;
+    const plain = g.examples.map(e => e.ja.replace(/\{\{|\}\}/g, ''));
+    const segs = await furigana(plain);
+    if (active !== g.id) return;
+    document.querySelectorAll('#ref .ex .ja').forEach((el, i) => { if (segs[i]) el.innerHTML = render(charsMarked(g.examples[i].ja), segs[i]); });
+  }
+
+  /* ---------- reference pane (grammar card + examples) ---------- */
+  function renderRef(g) {
+    const chip = (t, cls = '') => `<span class="chip ${cls}">${esc(t)}</span>`;
+    const okUrl = u => /^https?:\/\//i.test(u || '');
+    let h = `<div class="gcard"><div class="g-top"><h2 class="g-title">${esc(g.title)}</h2>` + (g.reading ? `<span class="g-read">${esc(g.reading)}</span>` : '') +
+      `<span class="g-tags">${chip(g.level, 'lvl')}${g.status === 'Master' ? chip('★ Master', 'master') : chip(g.status)}${g.mine ? chip('◆ your list', 'mine') : ''}</span></div>`;
+    h += `<div class="g-mean">${g.meanings.map(m => `<span class="mean">${esc(m)}</span>`).join('')}</div>`;
+    if (g.structure.length) h += `<div class="g-pat"><span class="lbl">Pattern</span><div>${g.structure.map(s => `<code>${esc(s)}</code>`).join('')}</div></div>`;
+    if (g.notes.length) h += `<div class="g-warn"><span>⚠</span><div>${g.notes.map(n => `<div>${esc(n)}</div>`).join('')}</div></div>`;
+    h += `</div>`;
+
+    if (!g.examples.length) h += `<div class="empty-ex">No example sentences for this point in the Bunpro deck — write your own on the right.</div>`;
+    else {
+      h += `<div class="sec"><span>Examples</span><b>${g.examples.length}</b></div>`;
+      h += g.examples.map((e, i) => `<article class="ex"><span class="n">${i + 1}</span><div class="ex-body"><div class="ja">${render(charsMarked(e.ja), null)}</div>` +
+        `<div class="en">${esc(e.en)}</div>${e.note ? `<div class="enote">${esc(e.note)}</div>` : ''}</div></article>`).join('');
+    }
+    if (g.nuance.length || g.books.length || g.links.length) {
+      h += `<div class="sec"><span>Notes &amp; links</span></div><div class="notes">`;
+      if (g.nuance.length) h += `<h4>Nuance</h4><ul>${g.nuance.map(n => `<li>${esc(n)}</li>`).join('')}</ul>`;
+      if (g.links.length) h += `<h4>Read more</h4><ul>${g.links.map(l => `<li>` +
+        (okUrl(l.url) ? `<a class="lnk" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label || l.site || l.url)}</a>` : esc(l.label)) +
+        (l.site && l.label ? `<small>${esc(l.site)}</small>` : '') + `</li>`).join('')}</ul>`;
+      if (g.books.length) h += `<h4>Textbooks</h4><ul>${g.books.map(b => `<li>${esc(b)}</li>`).join('')}</ul>`;
+      h += `</div>`;
+    }
+    $('#ref').innerHTML = h;
+    $('#ref').scrollTop = 0;
+    fillFurigana(g);
+  }
+
+  /* ---------- practice editor ---------- */
   function renderEditor() {
     const split = $('#split'), welcome = $('#welcome');
+    hidePop();
     if (active == null) { split.hidden = true; welcome.hidden = false; $('#tools').hidden = true; scroller.innerHTML = ''; $('#ref').innerHTML = ''; ta = null; $('#pos').textContent = ''; return; }
     welcome.hidden = true; split.hidden = false; $('#tools').hidden = false;
 
     const g = byId.get(active);
     renderRef(g);
+    $('#ph-path').textContent = 'sentences/' + g.file;
     scroller.innerHTML =
       `<div class="code"><div class="body"><div class="gutter"></div><div class="field"><div class="curline"></div>` +
       `<textarea id="ta" wrap="off" lang="ja" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Practice sentences for ${esc(g.title)}" ` +
-      `placeholder="例: ここに練習文を書いてください"></textarea></div></div></div>`;
+      `placeholder="例: ここに練習文を書いてください（1行に1文）"></textarea></div></div></div>`;
     gutterEl = $('.gutter', scroller); curEl = $('.curline', scroller); ta = $('#ta', scroller);
     ta.value = texts[active] ?? '';
     gutterLines = 0;
 
     ta.addEventListener('input', onInput);
-    ta.addEventListener('keydown', () => requestAnimationFrame(onCursor));
+    ta.addEventListener('keydown', () => { hidePop(); requestAnimationFrame(onCursor); });
     ['keyup', 'mouseup', 'focus'].forEach(ev => ta.addEventListener(ev, onCursor));
     ta.addEventListener('blur', () => { curEl.style.visibility = 'hidden'; });
+    ta.addEventListener('mousemove', onTaMove);
+    ta.addEventListener('mouseleave', () => { hoverLine = -1; hidePop(); });
 
     autosize(); renderGutter();
     const v = view[active];
@@ -524,7 +665,7 @@
   function autosize() {
     if (!ta) return;
     const lines = ta.value.split('\n').length;
-    ta.style.height = Math.max(lines * LH + 48, scroller.clientHeight) + 'px';
+    ta.style.height = Math.max(lines * LH + 60, scroller.clientHeight) + 'px';
   }
 
   function renderGutter() {
@@ -552,6 +693,7 @@
 
   function onInput() {
     const id = active;
+    hidePop(); hoverLine = -1;
     texts[id] = ta.value;
     dirty.add(id);
     store.set('gp2:draft:' + id, ta.value);   // browser-side safety net until the file write succeeds
@@ -561,6 +703,36 @@
     clearTimeout(timers[id]);
     timers[id] = setTimeout(() => save(id), 700);
   }
+
+  /* hover a line you wrote -> popover with furigana for the whole line */
+  const pop = $('#furipop');
+  let hoverLine = -1, hoverTimer = 0, lastX = 0;
+
+  function hidePop() { clearTimeout(hoverTimer); pop.style.display = 'none'; }
+
+  function onTaMove(e) {
+    if (prefs.furi === 'off') return;
+    lastX = e.clientX;
+    const line = Math.floor((e.clientY - ta.getBoundingClientRect().top) / LH);
+    if (line === hoverLine) return;
+    hoverLine = line; hidePop();
+    const text = ta.value.split('\n')[line] || '';
+    if (!KANJI.test(text) || text.length > 500) return;
+    hoverTimer = setTimeout(() => showPop(line, text), 250);
+  }
+
+  async function showPop(line, text) {
+    const segs = (await furigana([text]))[0];
+    if (!segs || hoverLine !== line || !ta || !segs.some(s => s[1])) return;
+    pop.innerHTML = render(charsPlain(text), segs);
+    pop.style.visibility = 'hidden'; pop.style.display = 'block';
+    const top = ta.getBoundingClientRect().top + line * LH;
+    const w = pop.offsetWidth, h = pop.offsetHeight;
+    pop.style.left = Math.max(8, Math.min(lastX - 24, innerWidth - w - 8)) + 'px';
+    pop.style.top = (top - h - 4 >= 8 ? top - h - 4 : top + LH + 4) + 'px';
+    pop.style.visibility = 'visible';
+  }
+  scroller.addEventListener('scroll', hidePop);
 
   /* ---------- saving ---------- */
   function save(id, keepalive = false) {
@@ -600,7 +772,7 @@
     const q = qin.value.trim().toLowerCase();
     qmatches = items.filter(g => !q || hay(g).includes(q));
     qsel = Math.max(0, Math.min(qsel, qmatches.length - 1));
-    qlist.innerHTML = qmatches.map((g, i) => `<li data-id="${g.id}" class="${i === qsel ? 'on' : ''}"><span>${esc(g.file)}</span><em>${esc(g.meanings.join(', '))}</em></li>`).join('')
+    qlist.innerHTML = qmatches.map((g, i) => `<li data-id="${g.id}" class="${i === qsel ? 'on' : ''}"><span class="no">${pad3(g.id)}</span><span class="t">${esc(g.title)}</span><em>${esc(g.meanings.join(', '))}</em></li>`).join('')
       || '<li class="none">No matching grammar point</li>';
   }
   function openQO() { qo.hidden = false; qin.value = ''; qsel = 0; renderQO(); qin.focus(); }
@@ -636,17 +808,27 @@
   }
   const toggleSide = () => setSide($('#sidebar').hidden);
   const togglePanel = () => setPanel($('#panel').hidden);
+  function step(d) {
+    const i = items.findIndex(g => g.id === active);
+    const n = items[Math.max(0, Math.min(items.length - 1, (i < 0 ? 0 : i + d)))];
+    if (n) activate(n.id);
+  }
 
   /* ---------- examples pane: toggles, layout, splitter ---------- */
   const split = $('#split'), refEl = $('#ref'), splitter = $('#splitter');
 
   function applyRefPrefs() {
+    if (!FURI.includes(prefs.furi)) prefs.furi = 'hover';
     refEl.classList.toggle('off', !prefs.ref);
     refEl.classList.toggle('no-tr', !prefs.tr);
     refEl.classList.toggle('cloze', prefs.cloze);
+    FURI.forEach(m => refEl.classList.toggle('fg-' + m, prefs.furi === m));
     $('#t-ref').setAttribute('aria-pressed', String(prefs.ref));
     $('#t-tr').setAttribute('aria-pressed', String(prefs.tr));
     $('#t-cloze').setAttribute('aria-pressed', String(prefs.cloze));
+    const f = $('#t-furi');
+    f.textContent = 'Furigana: ' + prefs.furi[0].toUpperCase() + prefs.furi.slice(1);
+    f.classList.toggle('active', prefs.furi !== 'off');
     applySplit();
   }
   function applySplit() {
@@ -661,6 +843,12 @@
   $('#t-ref').addEventListener('click', () => setPref('ref', !prefs.ref));
   $('#t-tr').addEventListener('click', () => setPref('tr', !prefs.tr));
   $('#t-cloze').addEventListener('click', () => setPref('cloze', !prefs.cloze));
+  $('#t-furi').addEventListener('click', () => {
+    const was = prefs.furi;
+    setPref('furi', FURI[(FURI.indexOf(prefs.furi) + 1) % FURI.length]);
+    hidePop();
+    if (was === 'off' && active != null) fillFurigana(byId.get(active));
+  });
   new ResizeObserver(applySplit).observe(split);
 
   splitter.addEventListener('pointerdown', e => {
@@ -683,17 +871,10 @@
   splitter.addEventListener('dblclick', () => { prefs.split = null; persistSession(); applySplit(); });
 
   $('#filter').addEventListener('input', applyFilter);
-  function step(d) {
-    const i = items.findIndex(g => g.id === active);
-    const n = items[Math.max(0, Math.min(items.length - 1, (i < 0 ? 0 : i + d)))];
-    if (n) activate(n.id);
-  }
-
   $('#act-files').addEventListener('click', () => toggleSide());
   $('#act-search').addEventListener('click', openQO);
   $('#panel-x').addEventListener('click', () => setPanel(false));
   $('#panel-toggle').addEventListener('click', () => togglePanel());
-  $('#folder').addEventListener('click', () => { $('#folder').classList.toggle('closed'); $('#files').classList.toggle('closed'); });
 
   addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
@@ -702,6 +883,7 @@
     else if (mod && !e.shiftKey && k === 'b') { e.preventDefault(); toggleSide(); }
     else if (mod && !e.shiftKey && k === 'j') { e.preventDefault(); togglePanel(); }
     else if (mod && !e.shiftKey && k === 'e') { e.preventDefault(); setPref('ref', !prefs.ref); }
+    else if (e.altKey && !mod && e.code === 'KeyG') { e.preventDefault(); grayBtn.click(); }
     else if (e.altKey && !mod && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { e.preventDefault(); step(e.key === 'ArrowDown' ? 1 : -1); }
   });
   setInterval(() => { if (saveError && dirty.size && !saving) saveAll(); }, 5000);
