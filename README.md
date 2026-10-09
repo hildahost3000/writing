@@ -5,6 +5,7 @@ plain file you open (no install) or with a tiny local server that keeps your sen
 
 - **212 grammar points** with **2,494 example sentences** and English translations
 - A goal of **10 sentences per point**, with progress rings, a daily streak and a "next point" button to keep you going
+- A **phone layout** (one screen at a time, tap for furigana) and optional **sync across your devices** on the hosted site
 - **Furigana on hover** for the examples (and for the lines you write, with the server)
 - Study modes: hide the translations, or blank out the target grammar (cloze)
 - A **grayscale switch** for when other people might see your screen
@@ -128,12 +129,44 @@ The grammar highlight is also bold and underlined, so it stays visible without c
 The sidebar filter understands numbers, Japanese, English, `mine` (the 24 points from the original hand-made list,
 marked ◆), and `todo`, `wip` or `done`.
 
+### On your phone
+
+On a narrow screen the app shows **one screen at a time**, switched from the bar at the bottom: **List** (pick a point),
+**Examples** (read the notes and sentences) and **Write** (your ten slots). Use ‹ › at the top to move to the previous or
+next point. Because a touch screen has no hover, **tap a word** to see its furigana, and **tap a sentence** to peek at its
+translation or the hidden grammar (when Translations is off or Cloze is on). The text area is sized so iPhones don't zoom
+in, and the layout shrinks to fit when the keyboard opens.
+
+### Sync across your devices
+
+If you use the hosted site (see below), **☁ Sync** keeps your sentences the same on your phone and your computers.
+
+- On your first device: **☁ Sync → Create a sync code**. Save the code somewhere safe (a password manager).
+- On another device: open the site, **☁ Sync → I already have a code** and paste it. Or choose **Copy link for another
+  device** on the first one and open that link on the other; it connects with one confirmation.
+- After that it's automatic: your changes upload a few seconds after you stop typing, and the other devices pick them up
+  when you open the site again (or press **Sync now**). It works offline too and catches up when you're back online.
+
+How it behaves: it's **local-first**, so everything still works without a connection and your sentences are always on the
+device too. If two devices changed the **same point** differently, you get **every distinct sentence from both** (nothing is
+lost). If only one device changed it, that version wins, including deletions. The daily counts and streak add up across
+devices.
+
+Privacy: your sentences are stored on the site's server (Vercel Blob) under a key derived from your sync code. The code itself
+is never stored, and **anyone who has it can read and change your sentences**, so keep it private. If you lose the code and
+all your devices, the cloud copy can't be recovered. **Turn off on this device** stops syncing there and keeps your sentences.
+
+The sync button only appears where the site has the sync service (the Vercel deployment). It doesn't appear when you open
+the file directly, on GitHub Pages, or with the local server.
+
 ## What's in the folder
 
 | File | Purpose |
 | --- | --- |
 | `index.html` | The whole interface (one file, no build step) |
 | `data/grammar.js` | The grammar points, examples and ready-made furigana, for running without a server |
+| `api/sync.js`, `api/_core.js`, `package.json` | The optional sync service for the Vercel deployment (stores one small document per sync code in Vercel Blob) |
+| `vercel.json`, `.vercelignore` | Deployment settings: only `index.html`, `data/` and `api/` are published |
 | `grammar.json` | The same grammar points, as editable source |
 | `build_static.py` | Rebuilds `data/grammar.js` from `grammar.json` |
 | `server.py` | Optional local server: saves real files, serves furigana. Python standard library only |
@@ -168,7 +201,12 @@ Because the page can run without a server, any static host works: GitHub Pages (
 `main` branch, root folder) or Vercel (import the repository, framework preset **Other**, no build command). There's nothing
 to configure; the host just serves `index.html` and `data/grammar.js`.
 
-- Each visitor's sentences stay in **their own browser**. There's no shared storage, so nobody can read or change anyone else's.
+- Each visitor's sentences stay in **their own browser** unless they turn on ☁ Sync, which stores them under their own secret code.
+  Nobody can read or change anyone else's.
+- **Sync needs a Vercel Blob store** connected to the project (`vercel blob create-store <name> --access private`, which adds
+  `BLOB_READ_WRITE_TOKEN`). On Vercel's free Hobby plan Blob is free within its limits (2,000 writes and 10,000 reads a month);
+  Vercel pauses access rather than charging if you go over, and your sentences stay safe on each device. The app writes
+  only after you stop typing, at most about once every 90 seconds. GitHub Pages and other plain hosts work too, just without ☁ Sync.
 - The site is public: anyone with the link can see the grammar notes and examples. If you'd rather keep it to yourself, use
   a private deployment or a host with a password.
 - `server.py`, `grammar.json` and anything committed under `sentences/` would be public too, so keep your own sentences out of git.
@@ -181,6 +219,10 @@ to configure; the host just serves `index.html` and `data/grammar.js`.
   was moved or renamed. Restore from your latest backup: 💾 Backup → *Restore from backup…*.
 - **I used the server before and now my sentences aren't showing (opened the file)**: they're in `sentences/`, not in the
   browser. In 💾 Backup choose *Restore from backup…* and select the `.txt` files from `sentences/`.
+- **☁ Sync says "No synced sentences were found for that code"**: check the code for typos (dashes and capitals don't
+  matter). If this is your first device, use **Create a sync code** instead.
+- **☁ Sync shows "Offline" or "Sync service problem"**: your sentences are safe on this device and it retries every minute.
+  A persistent service problem can mean the Blob store's monthly limit was reached; it resets after 30 days.
 - **"Could not start on port 8765"**: it's probably already running (check other terminal tabs), or something else
   uses that port. Try `python3 server.py 9000`.
 - **No furigana on my own lines**: that needs the server and the dictionary. Run `python3 setup_furigana.py`, start

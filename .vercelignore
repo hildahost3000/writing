@@ -1,0 +1,19 @@
+# The website is just index.html + data/grammar.js. Everything below stays off Vercel.
+
+# your own writing
+sentences/
+all_sentences.md
+
+# server edition and tooling (also stops Vercel mistaking server.py for a Python app)
+*.py
+requirements.txt
+vendor/
+__pycache__/
+
+# source data (the site uses data/grammar.js) and docs
+grammar.json
+README.md
+.claude/
+
+# local tooling
+node_modules/

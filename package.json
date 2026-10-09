@@ -1,0 +1,10 @@
+{
+  "name": "n2-grammar-practice",
+  "private": true,
+  "type": "module",
+  "description": "N2 grammar practice. The page is static; /api/sync (optional) keeps sentences in step across devices using Vercel Blob.",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@vercel/blob": "^2.8.1"
+  }
+}
