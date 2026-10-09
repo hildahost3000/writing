@@ -28,6 +28,7 @@ SENTENCES = ROOT / "sentences"
 COMBINED = ROOT / "all_sentences.md"
 HOST, PORT = "127.0.0.1", 8765
 PROGRESS = SENTENCES / ".progress.json"  # {"days": {"2026-10-08": 12, ...}}: sentences added per day
+REVIEWS = SENTENCES / ".reviews.json"    # {"<grammar id>": [{s, c, n, v, done, gone, at}, ...]}: teacher corrections
 MAX_BYTES = 1_000_000
 LOCK = threading.Lock()
 _grammar = (None, None)  # (mtime of grammar.json, parsed items)
@@ -58,6 +59,32 @@ def load_progress():
         return days if isinstance(days, dict) else {}
     except (OSError, ValueError, AttributeError):
         return {}
+
+
+def load_reviews():
+    try:
+        data = json.loads(REVIEWS.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def clean_reviews(raw):
+    """Validate one point's list of corrections; return a cleaned list, or None if it isn't well formed."""
+    if not isinstance(raw, list) or len(raw) > 300:
+        return None
+    out = []
+    for it in raw:
+        if not isinstance(it, dict) or not isinstance(it.get("s"), str) or len(it["s"]) > 600:
+            return None
+        c, n = it.get("c", ""), it.get("n", "")
+        if it.get("v") not in ("ok", "fix") or not isinstance(c, str) or len(c) > 600 or not isinstance(n, str) or len(n) > 2000:
+            return None
+        if isinstance(it.get("at"), bool) or not isinstance(it.get("at"), (int, float)):
+            return None
+        out.append({"s": it["s"], "c": c, "n": n, "v": it["v"], "done": bool(it.get("done")),
+                    "gone": bool(it.get("gone")), "at": int(it["at"])})
+    return out
 
 
 def add_to_today(delta):
@@ -145,6 +172,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(out)
         if path == "/api/stats":
             return self._json({"day": date.today().isoformat(), "days": load_progress()})
+        if path == "/api/reviews":
+            return self._json(load_reviews())
         self._send(404, b"not found")
 
     def do_POST(self):
@@ -167,9 +196,31 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"error": f"furigana unavailable: {e}"}, 503)
         self._json({"results": results})
 
+    def _put_reviews(self, gid):
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+            if length > 200_000:
+                return self._send(413, b"too large")
+            cleaned = clean_reviews(json.loads(self.rfile.read(length).decode("utf-8")))
+        except (ValueError, UnicodeDecodeError):
+            cleaned = None
+        if cleaned is None:
+            return self._send(400, b"expected a list of corrections")
+        with LOCK:
+            data = load_reviews()
+            if cleaned:
+                data[gid] = cleaned
+            else:
+                data.pop(gid, None)
+            write_atomic(REVIEWS, json.dumps(data, ensure_ascii=False, indent=0, sort_keys=True))
+        self._json({"ok": True})
+
     def do_PUT(self):
         if not self._host_ok():
             return self._send(403, b"forbidden")
+        rv = re.fullmatch(r"/api/reviews/(\d+)", self.path.split("?", 1)[0])
+        if rv:
+            return self._put_reviews(rv.group(1))
         m = re.fullmatch(r"/api/sentences/(\d+)", self.path.split("?", 1)[0])
         if not m:
             return self._send(404, b"not found")

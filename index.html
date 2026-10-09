@@ -217,6 +217,55 @@
   #ph-save[data-state="err"] { color: #14151f; background: var(--pink); border-color: var(--pink); }
   @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.5); } 100% { transform: scale(1); } }
   #scroll { flex: 1 1 0; min-height: 0; min-width: 0; overflow: auto; font: 17px/var(--LH) var(--jp); }
+
+  /* teacher review */
+  .prac-tabs { display: flex; align-items: center; gap: 4px; padding: 6px 14px 0; border-bottom: 1px solid var(--line); flex: none; }
+  .prac-tabs > button[data-m] { padding: 8px 14px; border-radius: 9px 9px 0 0; color: var(--dim); font-size: 13px; font-weight: 600; border-bottom: 2px solid transparent; }
+  .prac-tabs > button[data-m]:hover { color: var(--hi); }
+  .prac-tabs > button[data-m].on { color: var(--hi); border-bottom-color: var(--accent); }
+  .prac-tabs b { margin-left: 5px; padding: 0 7px; border-radius: 99px; background: var(--yellow); color: #14151f; font-size: 11px; }
+  .prac-tabs b:empty { display: none; }
+  #teacher { margin: 0 0 5px auto; }
+  #teacher[hidden] { display: none; }
+  #prac.teacher .prac-tabs { background: rgba(247,118,142,.10); border-bottom-color: rgba(247,118,142,.45); }
+  #prac.teacher #teacher { background: var(--pink); border-color: var(--pink); color: #14151f; }
+  #prac[data-mode="review"] #scroll, #prac:not([data-mode="review"]) #review { display: none; }
+  #review { flex: 1 1 0; min-height: 0; overflow: auto; padding: 14px 16px 32px; font-family: var(--jp); }
+  .rv-intro { margin: 0 0 14px; padding: 10px 14px; border-radius: 11px; background: var(--card); border: 1px solid var(--line); color: var(--dim); font: 13px/1.55 var(--ui); }
+  .rv-intro b { color: var(--hi); }
+  #prac.teacher .rv-intro { border-color: rgba(247,118,142,.45); }
+  .rv-card { margin-bottom: 10px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+  .rv-card.fix { border-color: rgba(224,175,104,.5); }
+  .rv-card.is-ok { border-color: rgba(158,206,106,.35); }
+  .rv-top { display: flex; gap: 10px; align-items: flex-start; }
+  .rv-n { flex: none; width: 24px; height: 24px; margin-top: 4px; border-radius: 50%; background: var(--card2); color: var(--dim); font: 600 12px/24px var(--ui); text-align: center; }
+  .rv-s { flex: 1; min-width: 0; font-size: 18px; line-height: 1.7; color: var(--hi); overflow-wrap: anywhere; }
+  .rv-st { flex: none; margin-top: 3px; padding: 2px 9px; border-radius: 99px; font: 700 11px var(--ui); white-space: nowrap; background: var(--card2); color: var(--dim); }
+  .rv-st.ok { background: rgba(158,206,106,.16); color: var(--green); }
+  .rv-st.fix { background: rgba(224,175,104,.16); color: var(--yellow); }
+  .rv-diff { margin: 8px 0 0 34px; padding: 8px 12px; border-radius: 10px; background: var(--bg2); font-size: 18px; line-height: 1.8; color: var(--hi); overflow-wrap: anywhere; }
+  .rv-diff del { color: var(--pink); background: rgba(247,118,142,.14); text-decoration: line-through; text-decoration-thickness: 2px; border-radius: 3px; }
+  .rv-diff ins { color: var(--green); background: rgba(158,206,106,.16); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; border-radius: 3px; }
+  .rv-note { margin: 8px 0 0 34px; color: var(--text); font: 13.5px/1.55 var(--ui); }
+  .rv-note::before { content: "💬 "; filter: grayscale(.4); }
+  .rv-done { margin: 6px 0 0 34px; color: var(--faint); font: 13px/1.5 var(--ui); }
+  .rv-acts { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0 34px; }
+  .rv-acts button, .rv-row button { padding: 6px 14px; border-radius: 99px; border: 1px solid var(--line); color: var(--hi); font: 600 12.5px var(--ui); }
+  .rv-acts button:hover, .rv-row button:hover { border-color: var(--accent-line); background: var(--accent-soft); }
+  .rv-acts button.go, .rv-row button.go { background: var(--green); border-color: var(--green); color: #14151f; }
+  .rv-edit { margin: 10px 0 0 34px; }
+  .rv-edit label { display: block; margin: 8px 0 4px; font: 700 10.5px var(--ui); text-transform: uppercase; letter-spacing: .08em; color: var(--faint); }
+  .rv-in, .rv-edit textarea { width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--accent-line); background: var(--bg); color: var(--hi); font: 17px/1.5 var(--jp); outline: 0; resize: vertical; }
+  .rv-edit textarea { font: 14px/1.5 var(--jp); }
+  .rv-edit .rv-diff { margin-left: 0; }
+  .rv-row { display: flex; gap: 8px; margin-top: 10px; }
+  .rv-h { margin: 22px 2px 8px; font: 700 11.5px var(--ui); letter-spacing: .09em; text-transform: uppercase; color: var(--dim); }
+  details.rv-log { margin-top: 18px; padding: 10px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+  details.rv-log summary { cursor: pointer; color: var(--dim); font: 600 12.5px var(--ui); }
+  .rv-log .lg { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+  .rv-empty { padding: 26px; text-align: center; color: var(--faint); border: 1px dashed var(--line); border-radius: 14px; font: 14px/1.6 var(--ui); }
+  .fixn { color: var(--yellow); font: 700 11px var(--ui); }
+  .fixn:empty { display: none; }
   .code { width: 100%; display: flex; flex-direction: column; min-height: 100%; }
   .body { display: flex; flex: 1; position: relative; padding-top: 6px; }
   .gutter { flex: none; }
@@ -403,6 +452,12 @@
     #ph-next, #ph-save { height: 34px; }
     .gutter .ln { width: 44px; padding-right: 12px; }
     #scroll { font-size: 17px; }
+    .prac-tabs { padding: 4px 10px 0; }
+    .prac-tabs > button[data-m] { padding: 10px 12px; }
+    #review { padding: 12px 12px 28px; }
+    .rv-top { flex-wrap: wrap; }
+    .rv-diff, .rv-note, .rv-done, .rv-acts, .rv-edit { margin-left: 0; }
+    .rv-acts button, .rv-row button { padding: 9px 16px; }
 
     #bnav { display: flex; background: var(--bg2); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); }
     #bnav button { flex: 1; height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 11.5px; color: var(--dim); position: relative; }
@@ -505,7 +560,7 @@
         <div id="split" hidden>
           <section id="ref" aria-label="Grammar notes and example sentences"></section>
           <div id="splitter" role="separator" aria-label="Resize examples pane"></div>
-          <div id="prac">
+          <div id="prac" data-mode="write">
             <div class="prac-head">
               <span class="ph-title">✎ Your sentences</span>
               <div class="pips" id="pips" role="img"></div>
@@ -514,7 +569,13 @@
               <button id="ph-next" hidden title="Jump to the next point you haven't finished (Alt+N)">Next point →</button>
               <button id="ph-save" data-state="clean" title="Save now (Ctrl+S)">✓ Saved</button>
             </div>
+            <div class="prac-tabs" id="ptabs">
+              <button data-m="write" class="on">✎ Write</button>
+              <button data-m="review" title="Your teacher's corrections">Review <b id="rv-count"></b></button>
+              <button id="teacher" class="tbtn" aria-pressed="false" hidden title="For your teacher: mark sentences correct or write a correction">✍ Teacher mode</button>
+            </div>
             <div id="scroll"></div>
+            <div id="review"></div>
           </div>
         </div>
         <div id="welcome">
@@ -707,6 +768,7 @@ python3 server.py</pre>
     $('#ph-msg').textContent = (MSGS.filter(([from]) => n >= from).pop() || MSGS[0])[1];
     $('#ph-next').hidden = !(n >= GOAL && nextTodoId() != null);
     $('#bn-count').textContent = active == null ? '' : ` ${Math.min(n, GOAL)}/${GOAL}`;
+    refreshReviewBadge();
   }
 
   function refreshTotals() {
@@ -740,6 +802,7 @@ python3 server.py</pre>
       el.setAttribute('role', 'listitem');
       el.title = `${g.file}\n${g.meanings.join(', ')}\n${g.status}${g.mine ? ' · from your original list' : ''}`;
       el.innerHTML = `<span class="ring"></span><span class="no">${pad3(g.id)}</span><span class="name">${esc(g.title)}</span>` +
+        '<span class="fixn" title="Corrections from your teacher to study"></span>' +
         (g.mine ? '<span class="mine" title="From your original list">◆</span>' : '') +
         (g.status === 'Master' ? '<span class="star" title="Master">★</span>' : '') + '<span class="badge"></span>';
       el.addEventListener('click', () => activate(g.id));
@@ -757,6 +820,8 @@ python3 server.py</pre>
     el.classList.toggle('done', n >= GOAL);
     el.style.setProperty('--p', Math.min(100, n / GOAL * 100) + '%');
     $('.badge', el).textContent = n >= GOAL ? (n > GOAL ? `✓ +${n - GOAL}` : '✓') : n ? `${n}/${GOAL}` : '';
+    const f = openFixes(id);
+    $('.fixn', el).textContent = f ? `✎${f}` : '';
   }
   const updateAllRows = () => items.forEach(g => updateRow(g.id));
 
@@ -774,7 +839,7 @@ python3 server.py</pre>
     const isState = ['todo', 'wip', 'done'].includes(q);   // "todo" / "wip" / "done" filter by progress
     let shown = 0;
     for (const g of items) {
-      const ok = !q || (isState ? stateOf(count(texts[g.id])) === q : hay(g).includes(q));
+      const ok = !q || (isState ? stateOf(count(texts[g.id])) === q : q === 'fix' ? openFixes(g.id) > 0 : hay(g).includes(q));
       rows.get(g.id).hidden = !ok; if (ok) shown++;
     }
     $('#nomatch').hidden = shown > 0;
@@ -1039,6 +1104,7 @@ python3 server.py</pre>
     if (v) { ta.setSelectionRange(v.s, v.e); scroller.scrollTop = v.top; scroller.scrollLeft = v.left; }
     else { const n = ta.value.length; ta.setSelectionRange(n, n); scroller.scrollTop = 0; }
     onCursor();
+    if ($('#prac').dataset.mode === 'review') { editingKey = null; renderReview(); }
   }
 
   function autosize() {
@@ -1147,6 +1213,7 @@ python3 server.py</pre>
   $('#fchips').addEventListener('click', e => { const b = e.target.closest('button[data-f]'); if (b) { $('#filter').value = b.dataset.f; applyFilter(); } });
 
   /* ---------- storage: server files, or this browser ---------- */
+  const LS_REV = id => 'gp2:s:r:' + id;
   const LS_TEXT = id => 'gp2:s:t:' + id, LS_DAYS = 'gp2:s:days', LS_BACKUP = 'gp2:s:backup', LS_META = 'gp2:s:meta', LS_DEVICE = 'gp2:s:device';
   // ddev: sentences added per day, kept per device so syncing devices can add their counts together (days = the totals).
   // meta: per grammar point, u = when it was last edited here, b = the edit time both sides last agreed on (used by sync).
@@ -1173,7 +1240,8 @@ python3 server.py</pre>
       const [grammar, texts] = await Promise.all([get('/api/grammar'), get('/api/sentences')]);
       if (!Array.isArray(grammar)) throw new Error('not the save server');
       const st = await get('/api/stats').catch(() => ({ day: '', days: {} }));
-      return { grammar, texts, day: st.day || '', days: st.days || {} };
+      const revs = await get('/api/reviews').catch(() => ({}));
+      return { grammar, texts, day: st.day || '', days: st.days || {}, reviews: revs };
     },
     async save(id, text, keepalive) {
       const r = await fetch('/api/sentences/' + id, { method: 'PUT', headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body: text, keepalive });
@@ -1195,7 +1263,9 @@ python3 server.py</pre>
       for (const [d, v] of Object.entries(raw)) ddev[d] = typeof v === 'number' ? { [deviceId()]: v } : v;   // older versions stored one number per day
       const totals = {}; for (const d of Object.keys(ddev)) totals[d] = sumDev(ddev[d]);
       try { meta = JSON.parse(lsGet(LS_META) || '{}') || {}; } catch { meta = {}; }
-      return { grammar: D.grammar, texts, day: dayStr(new Date()), days: totals };
+      const revs = {};
+      for (const g of D.grammar) { try { const l = JSON.parse(lsGet(LS_REV(g.id)) || 'null'); if (Array.isArray(l) && l.length) revs[g.id] = l; } catch {} }
+      return { grammar: D.grammar, texts, day: dayStr(new Date()), days: totals, reviews: revs };
     },
     save(id, text) {                              // synchronous on purpose: it must finish even while the page is closing
       if (text) localStorage.setItem(LS_TEXT(id), text); else localStorage.removeItem(LS_TEXT(id));   // throws if storage is blocked or full
@@ -1390,6 +1460,157 @@ python3 server.py</pre>
   addEventListener('pagehide', () => saveAll(true));
   addEventListener('beforeunload', e => { if (saveError && dirty.size) { e.preventDefault(); e.returnValue = ''; } });
 
+  /* ---------- teacher review ---------- */
+  // A place for a teacher to correct what you wrote. She uses the same device as you, so there is no account: switch on
+  // Teacher mode, then mark a sentence correct, or write the corrected version with a note. Your original stays, her change
+  // is shown highlighted, and you can apply it with one tap.
+  let reviews = {};                         // grammar id -> [{ s: sentence as written, c: correction, n: note, v: 'ok'|'fix', done, gone, at }]
+  let teacherMode = false, editingKey = null, rvCtx = { lines: [], orphans: [] };
+  const sentenceLines = id => (texts[id] || '').split('\n').map(l => l.trim()).filter(l => l.length >= 3);
+  const liveItem = (id, s) => (reviews[id] || []).find(x => x.s === s && !x.gone);
+  const isResolved = (it, lines) => it.done || lines.includes(it.c);      // applied, or you've already written the corrected sentence yourself
+  const openFixes = id => { const lines = sentenceLines(id); return (reviews[id] || []).filter(it => it.v === 'fix' && !it.gone && !isResolved(it, lines)).length; };
+
+  // What changed between two sentences, character by character: removed text struck through, added text underlined.
+  function diffHtml(a, b) {
+    const x = Array.from(a), y = Array.from(b), n = x.length, m = y.length;
+    if (n * m > 250000) return `<del>${esc(a)}</del> <ins>${esc(b)}</ins>`;
+    const L = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = x[i] === y[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    const out = [], push = (t, ch) => { const last = out[out.length - 1]; if (last && last.t === t) last.s += ch; else out.push({ t, s: ch }); };
+    let i = 0, j = 0;
+    while (i < n && j < m) { if (x[i] === y[j]) { push('=', x[i]); i++; j++; } else if (L[i + 1][j] >= L[i][j + 1]) push('-', x[i++]); else push('+', y[j++]); }
+    while (i < n) push('-', x[i++]);
+    while (j < m) push('+', y[j++]);
+    return out.map(o => o.t === '=' ? esc(o.s) : o.t === '-' ? `<del>${esc(o.s)}</del>` : `<ins>${esc(o.s)}</ins>`).join('');
+  }
+
+  async function persistReviews(id) {
+    const list = reviews[id] || [];
+    try {
+      if (MODE === 'browser') {
+        if (list.length) localStorage.setItem(LS_REV(id), JSON.stringify(list)); else localStorage.removeItem(LS_REV(id));
+        syncSoon();
+      } else {
+        const r = await fetch('/api/reviews/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(list) });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+      }
+    } catch (e) { toast(`Couldn't save that correction (${esc(e.message)}).`); }
+  }
+
+  function upsertItem(id, patch) {          // every change gets a new timestamp, so the newest version wins when devices sync
+    const list = (reviews[id] ||= []);
+    const i = list.findIndex(x => x.s === patch.s);
+    const it = { c: '', n: '', v: 'fix', done: false, gone: false, ...(i >= 0 ? list[i] : {}), ...patch, at: Date.now() };
+    if (i >= 0) list[i] = it; else list.push(it);
+    persistReviews(id);
+    return it;
+  }
+
+  function applyCorrection(id, s, it) {
+    const lines = (texts[id] || '').split('\n');
+    const at = lines.findIndex(l => l.trim() === s);
+    if (at >= 0) lines[at] = it.c;
+    else if (!lines.some(l => l.trim() === it.c)) lines.push(it.c);
+    ta.value = lines.join('\n');
+    onInput();                                // saves it like any other edit
+    upsertItem(id, { s: it.s, done: true });
+  }
+
+  function refreshReviewBadge() { const n = active == null ? 0 : openFixes(active); $('#rv-count').textContent = n || ''; }
+
+  function renderReview(background = false) {
+    refreshReviewBadge();
+    const id = active, box = $('#review');
+    if (id == null || $('#prac').dataset.mode !== 'review') return;
+    if (background && editingKey != null) return;       // a sync must never redraw while a correction is being typed
+    const T = teacherMode, lines = sentenceLines(id), list = (reviews[id] || []).filter(x => !x.gone);
+    const orphans = list.filter(it => it.v === 'fix' && !lines.includes(it.s) && !isResolved(it, lines));
+    rvCtx = { lines, orphans };
+    const act = (a, label, i, cls = '', key = 'i') => `<button class="${cls}" data-r="${a}" data-${key}="${i}">${label}</button>`;
+    let h = `<p class="rv-intro">${T
+      ? '<b>Teacher mode.</b> For each sentence, mark it correct or write the corrected version, with a note if it helps. The student keeps the original and sees your change highlighted.'
+      : 'Sentences your teacher has reviewed show up here with her corrections. Tap <b>Use this correction</b> to apply one to your sentences. To correct, your teacher can switch on <b>Teacher mode</b>.'}</p>`;
+
+    if (!lines.length) h += `<div class="rv-empty">Nothing to review yet. Write some sentences on the <b>Write</b> tab first.</div>`;
+    h += lines.map((s, i) => {
+      const it = liveItem(id, s), editing = editingKey === s;
+      const resolved = it && it.v === 'fix' && isResolved(it, lines);
+      const state = !it ? 'none' : it.v === 'ok' ? 'ok' : resolved ? 'ok' : 'fix';
+      const badge = { none: '<span class="rv-st">Not reviewed</span>', ok: `<span class="rv-st ok">✓ ${it?.v === 'ok' ? 'Correct' : 'Fixed'}</span>`, fix: '<span class="rv-st fix">Needs a fix</span>' }[state];
+      let body = '', acts = '';
+      if (editing) {
+        body = `<div class="rv-edit"><label for="rv-c">Corrected sentence</label><input id="rv-c" class="rv-in" lang="ja" autocomplete="off" spellcheck="false" value="${esc(it?.v === 'fix' ? it.c : s)}">` +
+          `<div class="rv-diff" id="rv-live"></div><label for="rv-n">Note (optional)</label><textarea id="rv-n" rows="2" lang="ja" placeholder="Why? For example: 〜に vs 〜へ, or the polite form">${esc(it?.n || '')}</textarea>` +
+          `<div class="rv-row">${act('save', 'Save', i, 'go')}${act('cancel', 'Cancel', i)}</div></div>`;
+      } else {
+        if (it?.v === 'fix' && !resolved) body = `<div class="rv-diff">${diffHtml(s, it.c)}</div>`;
+        if (it?.n) body += `<div class="rv-note">${esc(it.n)}</div>`;
+        if (resolved && it.c) body += `<div class="rv-done">Corrected version: ${esc(it.c)}</div>`;
+        if (T) acts = !it ? act('ok', '✓ Correct', i, 'go') + act('edit', '✎ Correct it…', i)
+          : act('edit', it.v === 'ok' ? '✎ Correct it…' : '✎ Edit', i) + act('clear', 'Clear', i);
+        else if (it?.v === 'fix' && !resolved) acts = act('apply', 'Use this correction', i, 'go');
+      }
+      return `<div class="rv-card ${state === 'fix' ? 'fix' : state === 'ok' ? 'is-ok' : ''}"><div class="rv-top"><span class="rv-n">${i + 1}</span><div class="rv-s">${esc(s)}</div>${badge}</div>${body}${acts ? `<div class="rv-acts">${acts}</div>` : ''}</div>`;
+    }).join('');
+
+    if (orphans.length) {
+      h += `<div class="rv-h">Earlier corrections</div>` + orphans.map((it, k) => {
+        const acts = T ? act('clear', 'Remove', k, '', 'o') : act('addc', 'Add the correction to my sentences', k, 'go', 'o') + act('gotit', 'Got it', k, '', 'o');
+        return `<div class="rv-card fix"><div class="rv-top"><div class="rv-s">${esc(it.s)}</div><span class="rv-st fix">Needs a fix</span></div><div class="rv-diff">${diffHtml(it.s, it.c)}</div>` +
+          `${it.n ? `<div class="rv-note">${esc(it.n)}</div>` : ''}<div class="rv-acts">${acts}</div></div>`;
+      }).join('');
+    }
+
+    const applied = list.filter(it => it.v === 'fix' && isResolved(it, lines));
+    if (applied.length) h += `<details class="rv-log"><summary>Corrections you've learned from (${applied.length})</summary>` +
+      applied.map(it => `<div class="lg"><div class="rv-diff" style="margin:0">${diffHtml(it.s, it.c)}</div>${it.n ? `<div class="rv-note" style="margin-left:0">${esc(it.n)}</div>` : ''}</div>`).join('') + `</details>`;
+
+    box.innerHTML = h;
+    if (editingKey) { updateLiveDiff(); const inp = $('#rv-c'); if (inp && document.activeElement !== inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } }
+  }
+
+  function updateLiveDiff() { const el = $('#rv-live'); if (el && editingKey != null) el.innerHTML = diffHtml(editingKey, $('#rv-c').value); }
+
+  $('#review').addEventListener('input', e => { if (e.target.id === 'rv-c') updateLiveDiff(); });
+  $('#review').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'rv-c' && !e.isComposing) { e.preventDefault(); $('#review [data-r="save"]')?.click(); } });
+  $('#review').addEventListener('click', e => {
+    const b = e.target.closest('button[data-r]');
+    if (!b || active == null) return;
+    const id = active, a = b.dataset.r, s = rvCtx.lines[+b.dataset.i], o = rvCtx.orphans[+b.dataset.o];
+    if (['ok', 'edit', 'save', 'clear'].includes(a) && !teacherMode) return;       // only in Teacher mode
+    if (a === 'ok') upsertItem(id, { s, v: 'ok', c: '', n: '', done: false, gone: false });
+    else if (a === 'edit') editingKey = s;
+    else if (a === 'cancel') editingKey = null;
+    else if (a === 'save') {
+      const c = $('#rv-c').value.trim(), n = $('#rv-n').value.trim();
+      if (!c) return;
+      editingKey = null;
+      upsertItem(id, c === s ? { s, v: 'ok', c: '', n, done: false, gone: false } : { s, v: 'fix', c, n, done: false, gone: false });
+    }
+    else if (a === 'clear') upsertItem(id, { s: s ?? o.s, gone: true });
+    else if (a === 'apply') applyCorrection(id, s, liveItem(id, s));
+    else if (a === 'addc') applyCorrection(id, o.s, o);
+    else if (a === 'gotit') upsertItem(id, { s: o.s, done: true });
+    updateRow(id); renderReview();
+  });
+
+  function setTeacher(on) {
+    teacherMode = on; editingKey = null;
+    $('#prac').classList.toggle('teacher', on);
+    $('#teacher').setAttribute('aria-pressed', String(on));
+    renderReview();
+  }
+  function setPracMode(m) {
+    $('#prac').dataset.mode = m;
+    document.querySelectorAll('#ptabs button[data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+    $('#teacher').hidden = m !== 'review';
+    if (m !== 'review') setTeacher(false);
+    if (m === 'review') { hidePop(); renderReview(); } else { autosize(); onCursor(); }
+  }
+  document.querySelectorAll('#ptabs button[data-m]').forEach(b => b.addEventListener('click', () => setPracMode(b.dataset.m)));
+  $('#teacher').addEventListener('click', () => setTeacher(!teacherMode));
+
   /* ---------- backup & restore (browser mode) ---------- */
   const totalSentences = () => items.reduce((n, g) => n + count(texts[g.id]), 0);
   const rel = ms => { const m = Math.round((Date.now() - ms) / 60000); return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
@@ -1419,6 +1640,8 @@ python3 server.py</pre>
       const lines = (texts[g.id] || '').split('\n').map(l => l.trim()).filter(Boolean);
       if (!lines.length) continue;
       out.push(`## ${pad3(g.id)} · ${g.title}${g.reading ? ` (${g.reading})` : ''}`, '', `_${g.meanings.join('; ')}_`, '', ...lines.map(l => `- ${l}`), '');
+      const fixes = (reviews[g.id] || []).filter(it => it.v === 'fix' && !it.gone);
+      if (fixes.length) out.push('**Teacher corrections**', '', ...fixes.map(it => `- ${it.s} → **${it.c}**${it.n ? ` (${it.n})` : ''}`), '');
     }
     return out.join('\n');
   }
@@ -1438,7 +1661,8 @@ python3 server.py</pre>
     if (a === 'json') {
       const t = {}; for (const g of items) if ((texts[g.id] || '').trim()) t[g.id] = texts[g.id];
       download(`n2-grammar-backup-${dayStr(new Date())}.json`,
-        JSON.stringify({ app: 'n2-grammar-practice', version: 1, exportedAt: new Date().toISOString(), texts: t, days }, null, 1), 'application/json');
+        JSON.stringify({ app: 'n2-grammar-practice', version: 1, exportedAt: new Date().toISOString(), texts: t, days,
+          reviews: Object.fromEntries(Object.entries(reviews).filter(([, l]) => l.length)) }, null, 1), 'application/json');
       noteBackup(); toast('💾 Backup downloaded. Keep the file somewhere safe.');
     } else if (a === 'md') download(`n2-grammar-sentences-${dayStr(new Date())}.md`, allMarkdown(), 'text/markdown');
     else if (a === 'txt' && active != null) download(byId.get(active).file, texts[active] || '', 'text/plain');
@@ -1449,7 +1673,7 @@ python3 server.py</pre>
   $('#restore').addEventListener('change', async e => {
     const files = [...e.target.files]; e.target.value = '';
     if (!files.length) return;
-    const incoming = new Map(), backupDays = {};
+    const incoming = new Map(), backupDays = {}, backupRev = {};
     for (const f of files) {
       try {
         if (/\.json$/i.test(f.name)) {
@@ -1457,15 +1681,31 @@ python3 server.py</pre>
           if (d?.app !== 'n2-grammar-practice' || !d.texts || typeof d.texts !== 'object') throw new Error('not a backup');
           for (const [id, t] of Object.entries(d.texts)) if (typeof t === 'string') incoming.set(+id, t);
           Object.assign(backupDays, d.days || {});
+          if (d.reviews && typeof d.reviews === 'object') Object.assign(backupRev, d.reviews);
         } else if (/^\d{1,3}[_-].*\.txt$/i.test(f.name)) incoming.set(parseInt(f.name, 10), (await f.text()).replace(/\r\n/g, '\n'));
       } catch { toast(`Couldn't read ${esc(f.name)}. Choose a backup .json from this app, or the .txt files from the sentences folder.`); return; }
     }
     const changed = [...incoming].filter(([id, t]) => byId.has(id) && t !== (texts[id] ?? ''));
-    if (!changed.length) { toast('Nothing to restore: you already have everything in that file.'); return; }
+    const revAdds = [];                                                     // teacher corrections that are new, or newer than ours
+    for (const [id, list] of Object.entries(backupRev)) {
+      if (!byId.has(+id) || !Array.isArray(list)) continue;
+      for (const it of list) {
+        if (!it || typeof it.s !== 'string' || !Number.isFinite(it.at) || !(it.v === 'ok' || it.v === 'fix')) continue;
+        const cur = (reviews[id] || []).find(x => x.s === it.s);
+        if (!cur || it.at > cur.at) revAdds.push([id, { s: it.s, c: String(it.c ?? ''), n: String(it.n ?? ''), v: it.v, done: !!it.done, gone: !!it.gone, at: it.at }]);
+      }
+    }
+    if (!changed.length && !revAdds.length) { toast('Nothing to restore: you already have everything in that file.'); return; }
     const n = changed.reduce((s, [, t]) => s + count(t), 0);
-    if (!confirm(`Restore ${changed.length} grammar point${changed.length === 1 ? '' : 's'} (${n} sentence${n === 1 ? '' : 's'})?\n\nThose points will be replaced by the version in the file.`)) return;
+    const what = [changed.length && `${changed.length} grammar point${changed.length === 1 ? '' : 's'} (${n} sentence${n === 1 ? '' : 's'})`, revAdds.length && `${revAdds.length} teacher correction${revAdds.length === 1 ? '' : 's'}`].filter(Boolean).join(' and ');
+    if (!confirm(`Restore ${what}?\n\nPoints are replaced by the version in the file. Corrections are added, and the newest version of each is kept.`)) return;
     rememberView();
     try {
+      for (const [id, it] of revAdds) {
+        const list = (reviews[id] ||= []), i = list.findIndex(x => x.s === it.s);
+        if (i >= 0) list[i] = it; else list.push(it);
+      }
+      for (const id of new Set(revAdds.map(([id]) => id))) localStorage.setItem(LS_REV(id), JSON.stringify(reviews[id]));
       for (const [id, t] of changed) { localStorage.setItem(LS_TEXT(id), t); texts[id] = t; saved[id] = t; dirty.delete(id); meta[id] = { u: Date.now(), b: meta[id]?.b || 0 }; }
       saveMeta();
       for (const [d, c] of Object.entries(backupDays)) {
@@ -1473,12 +1713,12 @@ python3 server.py</pre>
         if (Number.isFinite(c) && c > have) { ddev[d] = ddev[d] || {}; ddev[d].restored = (ddev[d].restored || 0) + (c - have); days[d] = c; }
       }
       localStorage.setItem(LS_DAYS, JSON.stringify(ddev));
-    } catch (err) { failed(changed[0][0], err); refreshStatus(); toast('Couldn\'t restore: this browser is blocking storage.'); return; }
+    } catch (err) { failed((changed[0] || revAdds[0])[0], err); refreshStatus(); toast('Couldn\'t restore: this browser is blocking storage.'); return; }
     updateAllRows(); refreshTotals(); applyFilter(); renderTabs(); refreshStatus();
     if (active != null) renderEditor();
     noteBackup(); syncSoon();
-    log(`restored ${changed.length} grammar point${changed.length === 1 ? '' : 's'} (${n} sentences)`, 'ok');
-    toast(`✓ Restored ${changed.length} grammar point${changed.length === 1 ? '' : 's'} (${n} sentence${n === 1 ? '' : 's'}).`);
+    log(`restored ${what}`, 'ok');
+    toast(`✓ Restored ${what}.`);
   });
 
   setInterval(() => {   // keep "today" right across midnight
@@ -1540,6 +1780,18 @@ python3 server.py</pre>
     return { out, push };
   }
 
+  function mergeReviews(remoteRev) {  // per sentence, the most recent change (by timestamp) wins
+    const out = {}, changed = new Set(); let push = false;
+    for (const id of new Set([...Object.keys(reviews), ...Object.keys(remoteRev)])) {
+      const byKey = new Map((remoteRev[id] || []).map(it => [it.s, it]));
+      const local = new Map((reviews[id] || []).map(it => [it.s, it]));
+      for (const [s, it] of local) { const r = byKey.get(s); if (!r || it.at > r.at) { byKey.set(s, it); push = true; } }
+      out[id] = [...byKey.values()];
+      for (const it of out[id]) { const l = local.get(it.s); if (!l || l.at < it.at) changed.add(id); }
+    }
+    return { out, push, changed };
+  }
+
   function applyRemoteText(id, R) {
     texts[id] = R.t; saved[id] = R.t; savedAt[id] = Date.now();
     try { R.t ? localStorage.setItem(LS_TEXT(id), R.t) : localStorage.removeItem(LS_TEXT(id)); } catch {}
@@ -1552,6 +1804,7 @@ python3 server.py</pre>
     ta.value = texts[active] ?? '';
     ta.setSelectionRange(Math.min(pos, ta.value.length), Math.min(pos, ta.value.length));
     autosize(); renderGutter(); onCursor();
+    renderReview(true);
   }
 
   async function syncOnce() {
@@ -1581,7 +1834,9 @@ python3 server.py</pre>
 
     const dm = mergeDays(r.doc?.days || {});
     if (dm.push) needPush = true;
-    if (needPush) await api('PUT', { doc: { v: 1, texts: merged, days: dm.out }, etag: r.etag });   // 409 if another device wrote meanwhile
+    const rm = mergeReviews(r.doc?.reviews || {});
+    if (rm.push) needPush = true;
+    if (needPush) await api('PUT', { doc: { v: 1, texts: merged, days: dm.out, reviews: rm.out }, etag: r.etag });   // 409 if another device wrote meanwhile
 
     // success: now bring this device in line
     const adopted = new Set();
@@ -1600,8 +1855,12 @@ python3 server.py</pre>
     for (const d of Object.keys(ddev)) days[d] = sumDev(ddev[d]);
     try { localStorage.setItem(LS_DAYS, JSON.stringify(ddev)); } catch {}
 
-    if (adopted.size || dm.push || Object.keys(remote).length) { updateAllRows(); refreshTotals(); applyFilter(); }
+    reviews = rm.out;
+    for (const id of rm.changed) { try { const l = reviews[id] || []; l.length ? localStorage.setItem(LS_REV(id), JSON.stringify(l)) : localStorage.removeItem(LS_REV(id)); } catch {} }
+
+    if (adopted.size || dm.push || rm.changed.size || Object.keys(remote).length) { updateAllRows(); refreshTotals(); applyFilter(); }
     if (adopted.has(active)) refreshActiveText();
+    if (rm.changed.size) renderReview(true);
   }
 
   async function syncNow() {
@@ -1743,6 +2002,7 @@ python3 server.py</pre>
     }
     items = data.grammar;
     days = data.days; dayKey = data.day;
+    reviews = data.reviews || {};
     items.forEach(x => {
       x.reading ||= '';
       for (const k of ['meanings', 'structure', 'nuance', 'notes', 'books', 'links', 'examples']) x[k] ||= [];

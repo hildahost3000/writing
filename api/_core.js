@@ -8,6 +8,7 @@ const MAX_BODY = 600_000;     // bytes of JSON accepted
 const MAX_POINTS = 600;       // grammar points in a document
 const MAX_TEXT = 20_000;      // characters of sentences per point
 const MAX_DAYS = 1500;
+const MAX_REVIEWS = 300;      // teacher corrections per grammar point
 
 const HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -47,7 +48,30 @@ export function sanitize(doc) {
       }
     }
   }
-  return { v: 1, texts, days };
+  const out = { v: 1, texts, days };
+  if (doc.reviews !== undefined) {
+    const reviews = sanitizeReviews(doc.reviews);
+    if (!reviews) return null;
+    out.reviews = reviews;
+  }
+  return out;
+}
+
+// Teacher corrections: { "<grammar id>": [ { s: sentence as written, c: correction, n: note, v: 'ok'|'fix', done, gone, at } ] }
+export function sanitizeReviews(reviews) {
+  if (!isObj(reviews) || Object.keys(reviews).length > MAX_POINTS) return null;
+  const out = {};
+  for (const [id, list] of Object.entries(reviews)) {
+    if (!/^\d{1,4}$/.test(id) || !Array.isArray(list) || list.length > MAX_REVIEWS) return null;
+    out[id] = [];
+    for (const it of list) {
+      if (!isObj(it) || typeof it.s !== 'string' || it.s.length > 600 || !(it.v === 'ok' || it.v === 'fix') || !Number.isFinite(it.at)) return null;
+      const c = it.c ?? '', n = it.n ?? '';
+      if (typeof c !== 'string' || c.length > 600 || typeof n !== 'string' || n.length > 2000) return null;
+      out[id].push({ s: it.s, c, n, v: it.v, done: Boolean(it.done), gone: Boolean(it.gone), at: Math.trunc(it.at) });
+    }
+  }
+  return out;
 }
 
 const isConflict = e => e?.name === 'BlobPreconditionFailedError' || /already exists|precondition/i.test(e?.message || '');
@@ -74,6 +98,12 @@ export async function handle({ method, authorization, body }, store) {
       const doc = sanitize(body.doc);
       if (!doc) return reply(400, { error: 'invalid document' });
       if (body.etag != null && typeof body.etag !== 'string') return reply(400, { error: 'invalid etag' });
+      // An older copy of the page doesn't know about corrections and would upload a document without them. Keep the stored ones.
+      if (doc.reviews === undefined && body.etag) {
+        const cur = await store.get(path);
+        const kept = cur && JSON.parse(cur.text).reviews;
+        if (kept) doc.reviews = kept;
+      }
       try {
         const r = await store.put(path, JSON.stringify(doc), body.etag ? { ifMatch: body.etag } : {});
         return reply(200, { etag: r.etag });

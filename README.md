@@ -6,6 +6,7 @@ plain file you open (no install) or with a tiny local server that keeps your sen
 - **212 grammar points** with **2,494 example sentences** and English translations
 - A goal of **10 sentences per point**, with progress rings, a daily streak and a "next point" button to keep you going
 - A **phone layout** (one screen at a time, tap for furigana) and optional **sync across your devices** on the hosted site
+- A **Review tab** where your teacher can correct your sentences, with the changes highlighted
 - **Furigana on hover** for the examples (and for the lines you write, with the server)
 - Study modes: hide the translations, or blank out the target grammar (cloze)
 - A **grayscale switch** for when other people might see your screen
@@ -87,6 +88,7 @@ server edition's `sentences/` folder, so you can move between A and B at any tim
   one sentence per line. Edit them in any editor if you like.
 - `all_sentences.md`: rebuilt on every save, collects everything into one readable list.
 - `sentences/.progress.json`: how many sentences you added each day. It drives the streak; delete it to reset the streak.
+- `sentences/.reviews.json`: your teacher's corrections (see below). Keep it if you want to keep her notes.
 
 `sentences/` is your own work, so decide whether you want to commit it. If the repository is public, your practice
 sentences would be public too. If the server is stopped while you type, the page keeps your text and saves to the
@@ -128,6 +130,25 @@ The grammar highlight is also bold and underlined, so it stays visible without c
 
 The sidebar filter understands numbers, Japanese, English, `mine` (the 24 points from the original hand-made list,
 marked ◆), and `todo`, `wip` or `done`.
+
+### Teacher corrections
+
+For a tutoring session on the same device, there's no account or login. On a point's page, open the **Review** tab (next to
+**Write**).
+
+- **You** see each sentence you wrote with its status: *Not reviewed*, *✓ Correct* or *Needs a fix*. A correction shows
+  exactly what changed (removed text struck through, added text underlined, so it also reads in grayscale), plus your teacher's
+  note. **Use this correction** replaces the sentence in your list with one tap. If you simply type the corrected sentence
+  yourself, it counts as fixed too. Applied corrections are kept in a "learned from" log under the list.
+- **Your teacher** switches on **✍ Teacher mode** (top right of the Review tab). For each sentence she can tap **✓ Correct**, or
+  **✎ Correct it…** to edit a copy of the sentence (with a live preview of what changed) and add an optional note. Your original
+  is never overwritten until you choose to apply the correction. Teacher mode switches off when you go back to **Write**.
+- The Review tab shows a count of corrections you haven't dealt with yet, and the list shows **✎2** next to points that have
+  some. Type `fix` in the list filter to see only those points.
+
+Corrections are saved with everything else. With the server they go to `sentences/.reviews.json`; in the browser edition they
+are kept in the browser, included in **Backup / Restore** (and listed in the `.md` export), and synced with **☁ Sync**. If two
+devices change the same correction, the most recent change wins.
 
 ### On your phone
 
