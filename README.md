@@ -127,7 +127,7 @@ Drag the divider between the panes to resize it, or double-click it to reset.
 | `Alt+N` | Jump to the next point you haven't finished |
 | `Alt+↑` / `Alt+↓` | Previous / next point |
 | `Ctrl+S` | Save now (it also saves automatically) |
-| `Ctrl+E` | Show or hide the examples |
+| `Ctrl+E` | Show or hide the examples (in focus mode: flip between the examples and your page) |
 | `Alt+Z` | Focus mode on / off (it's also the **Focus** switch in the top bar) |
 | `Alt+G` | Grayscale on / off |
 
@@ -143,12 +143,15 @@ When you just want to write, turn on the **Focus** switch in the top bar (next t
 list and the examples all disappear, and you're left with the page you write on, like a notepad. The ten ruled lines are
 still there so you can see how many are left.
 
-- A small bar at the top (the point's name, **Write / Readings**, your count, the save state and the same **Focus** switch, to turn it off) fades away while you
+- A small bar at the top (the point's name, **Examples / Write / Readings**, your count, the save state and the same **Focus** switch, to turn it off) fades away while you
   type and comes back when you move the mouse or tap the screen. If saving ever fails, the save state stays visible and
   turns red, so you never lose work without noticing.
 - It saves automatically as usual (`Ctrl+S` still works). `Alt+↑` / `Alt+↓` move to the previous / next point and `Alt+N` jumps to the next
   one you haven't finished, all without leaving focus mode. `Ctrl+P` still opens the "go to point" box.
-- `Ctrl+E` leaves focus mode and shows the examples.
+- **Need the examples first?** Choose **Examples** in the focus bar (or press `Ctrl+E`) to read the grammar notes and example
+  sentences on a page of their own. The **Translations**, **Cloze** and **Furigana** buttons appear in the bar while you're there (on a
+  phone they keep their last setting, and you tap a word or a sentence as usual). Choose **Write** (or press `Ctrl+E` again) to go back
+  to your page, exactly where you were. `Alt+↑` / `Alt+↓` change point and stay on the examples, so you can study a few in a row.
 - The app remembers your choice, so it opens in focus mode next time. On a phone, the switch is the corner icon next to
   Save; tap anywhere to bring the bar back.
 

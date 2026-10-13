@@ -463,6 +463,9 @@
   html.typing #fbar:not(.alert) button, html.typing #fbar:not(.alert) .fb-seg { pointer-events: none; }
   .fb-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--faint); font: 13px var(--ui); }
   .fb-title b { margin-right: 10px; color: var(--dim); font: 600 14px var(--jp); }
+  .fb-tools { display: none; flex: 1; min-width: 0; gap: 6px; }
+  html.fx .fb-title { display: none; }
+  html.fx .fb-tools { display: flex; }
   .fb-seg { display: flex; flex: none; padding: 2px; border-radius: 99px; background: var(--card); border: 1px solid var(--line); }
   .fb-seg button { padding: 4px 13px; border-radius: 99px; font-size: 12px; color: var(--dim); }
   .fb-seg button:hover { color: var(--hi); }
@@ -485,8 +488,11 @@
   html.focus .code { max-width: 920px; margin: 0 auto; }
   html.focus #ta { padding: 0 28px 0 26px; }
   html.focus #readings { padding-top: 62px; }
+  /* the examples get a page of their own in focus mode (Examples in the focus bar, or Ctrl+E) */
+  html.focus.fx #prac { display: none; }
+  html.focus.fx #ref { display: block !important; flex: 1 1 auto; padding: 62px max(22px, calc((100% - 920px) / 2)) 48px; }
   @media (max-width: 720px) {
-    #fbar { gap: 8px; padding: 8px 10px 18px; }
+    #fbar { gap: 8px; padding: 8px 10px 18px; flex-wrap: wrap; }   /* wraps only when a failed save adds its long label */
     .fb-title { display: none; }
     #fbar .fb-seg { margin-right: auto; }
     #fb-focus > span:not(.track) { display: inline; }   /* keep the label here (the header switches hide theirs on a phone) */
@@ -494,6 +500,10 @@
     html.focus #ta { padding: 0 14px 0 14px; }
     html.focus #scroll { font-size: 18px; }
     html.focus #readings { padding: 52px 12px 32px; }
+    html.focus.fx #ref { padding: 52px 12px 32px; }
+    .fb-tools { display: none !important; }            /* the study toggles keep their last setting; change them outside focus mode */
+    .fb-seg button { padding: 4px 9px; }
+    #fb-save[data-state="clean"] { display: none; }   /* a phone has no room for "Saved"; it appears if something is unsaved */
     .rd-ja { font-size: 21px; }
   }
 </style>
@@ -600,7 +610,13 @@
         </div>
         <div id="fbar">
           <div class="fb-title" id="fb-title"></div>
+          <div class="fb-tools" id="fb-tools">
+            <button class="tbtn" id="fb-tr" aria-pressed="true">Translations</button>
+            <button class="tbtn" id="fb-cloze" aria-pressed="false">Cloze</button>
+            <button class="tbtn" id="fb-furi">Furigana: Hover</button>
+          </div>
           <div class="fb-seg" role="group" aria-label="Show">
+            <button data-m="examples" title="The grammar notes and example sentences (Ctrl+E)">Examples</button>
             <button data-m="write" class="on">Write</button>
             <button data-m="readings" title="Your sentences with the reading of every kanji">Readings</button>
           </div>
@@ -1336,7 +1352,8 @@ python3 server.py</pre>
     $('#ph-focus').setAttribute('aria-pressed', String(on));
     $('#focus').setAttribute('aria-checked', String(on));
     $('#fb-focus').setAttribute('aria-checked', String(on));
-    if (on && $('#prac').dataset.mode === 'review') setPracMode('write');   // corrections aren't part of the focus page
+    const mode = $('#prac').dataset.mode;
+    if (on ? mode === 'review' : mode === 'examples') setPracMode('write');   // corrections aren't part of the focus page, and the examples page only exists in focus mode
     autosize();
   }
 
@@ -1382,6 +1399,12 @@ python3 server.py</pre>
     const f = $('#t-furi');
     f.textContent = 'Furigana: ' + prefs.furi[0].toUpperCase() + prefs.furi.slice(1);
     f.classList.toggle('active', prefs.furi !== 'off');
+    for (const [from, to] of [['t-tr', 'fb-tr'], ['t-cloze', 'fb-cloze'], ['t-furi', 'fb-furi']]) {   // the focus bar's copies
+      const a = $('#' + from), b = $('#' + to);
+      b.textContent = a.textContent; b.className = a.className; b.title = a.title;
+      if (a.hasAttribute('aria-pressed')) b.setAttribute('aria-pressed', a.getAttribute('aria-pressed'));
+      b.onclick = () => a.click();
+    }
     applySplit();
   }
   function applySplit() {
@@ -1427,7 +1450,7 @@ python3 server.py</pre>
 
   addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
-    if (isFocus() && mod && !e.shiftKey && !e.altKey && k === 'e') { e.preventDefault(); setFocus(false); setPref('ref', true); }   // examples live outside focus mode
+    if (isFocus() && mod && !e.shiftKey && !e.altKey && k === 'e') { e.preventDefault(); setPracMode($('#prac').dataset.mode === 'examples' ? 'write' : 'examples'); }   // flip between the examples and your page
     else if (e.altKey && !mod && e.code === 'KeyZ') { e.preventDefault(); setFocus(!prefs.focus); }
     else if (mod && !e.shiftKey && !e.altKey && k === 's') { e.preventDefault(); saveAll(); }
     else if (mod && !e.shiftKey && k === 'p') { e.preventDefault(); openQO(); }
@@ -1584,12 +1607,17 @@ python3 server.py</pre>
     renderReview();
   }
   function setPracMode(m) {
-    $('#prac').dataset.mode = m;
+    if (m === 'examples' && !isFocus()) m = 'write';                    // outside focus mode the examples are the pane next to your sentences
+    const prac = $('#prac');
+    if (prac.dataset.mode === 'examples' && m !== 'examples') refTop = $('#ref').scrollTop;   // a hidden pane forgets its scroll position
+    prac.dataset.mode = m;
+    root.classList.toggle('fx', m === 'examples');
     document.querySelectorAll('#ptabs button[data-m], #fbar button[data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === m));
     $('#teacher').hidden = m !== 'review';
     if (m !== 'review') setTeacher(false);
     if (m === 'review') { hidePop(); renderReview(); }
     else if (m === 'readings') { hidePop(); renderReadings(); }
+    else if (m === 'examples') { hidePop(); requestAnimationFrame(() => { $('#ref').scrollTop = refTop; }); }
     else { autosize(); onCursor(); if (isFocus() && !isPhone()) ta?.focus({ preventScroll: true }); }
   }
   document.querySelectorAll('#ptabs button[data-m], #fbar button[data-m]').forEach(b => b.addEventListener('click', () => setPracMode(b.dataset.m)));
