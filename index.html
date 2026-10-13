@@ -209,6 +209,9 @@
   #ph-next { flex: none; height: 28px; padding: 0 14px; border-radius: 99px; font-size: 12px; font-weight: 600; color: #14151f; background: var(--green); border: 0; }
   #ph-next[hidden] { display: none; }
   #ph-next:hover { filter: brightness(1.1); }
+  #ph-focus { flex: none; height: 28px; display: inline-flex; align-items: center; gap: 6px; padding: 0 13px; border-radius: 99px; font-size: 12px; font-weight: 600; border: 1px solid var(--line); color: var(--dim); }
+  #ph-focus:hover { border-color: var(--accent-line); color: var(--hi); }
+  #ph-focus svg { width: 13px; height: 13px; }
   #ph-save { flex: none; height: 28px; min-width: 96px; padding: 0 14px; border-radius: 99px; font-size: 12px; font-weight: 600; border: 1px solid var(--line); background: transparent; color: var(--dim); }
   #ph-save:hover { border-color: var(--accent-line); color: var(--hi); }
   #ph-save[data-state="clean"] { color: var(--green); }
@@ -229,7 +232,7 @@
   #teacher[hidden] { display: none; }
   #prac.teacher .prac-tabs { background: rgba(247,118,142,.10); border-bottom-color: rgba(247,118,142,.45); }
   #prac.teacher #teacher { background: var(--pink); border-color: var(--pink); color: #14151f; }
-  #prac[data-mode="review"] #scroll, #prac:not([data-mode="review"]) #review { display: none; }
+  #prac:not([data-mode="write"]) #scroll, #prac:not([data-mode="review"]) #review, #prac:not([data-mode="readings"]) #readings { display: none; }
   #review { flex: 1 1 0; min-height: 0; overflow: auto; padding: 14px 16px 32px; font-family: var(--jp); }
   .rv-intro { margin: 0 0 14px; padding: 10px 14px; border-radius: 11px; background: var(--card); border: 1px solid var(--line); color: var(--dim); font: 13px/1.55 var(--ui); }
   .rv-intro b { color: var(--hi); }
@@ -266,6 +269,25 @@
   .rv-empty { padding: 26px; text-align: center; color: var(--faint); border: 1px dashed var(--line); border-radius: 14px; font: 14px/1.6 var(--ui); }
   .fixn { color: var(--yellow); font: 700 11px var(--ui); }
   .fixn:empty { display: none; }
+
+  /* readings: your sentences with the kana above every kanji, for when you forget how to read one */
+  #readings { flex: 1 1 0; min-height: 0; overflow: auto; padding: 14px 18px 40px; font-family: var(--jp); }
+  .rd-wrap { max-width: 920px; margin: 0 auto; }
+  .rd-row { display: flex; gap: 14px; align-items: baseline; padding: 3px 0; border-bottom: 1px solid rgba(138,146,184,.17); }
+  .rd-n { flex: none; width: 24px; text-align: right; color: var(--faint); font: 12px var(--mono); }
+  .rd-ja { min-width: 0; flex: 1; font-size: 23px; line-height: 2.45; color: var(--hi); overflow-wrap: anywhere; }
+  #readings rt { opacity: 1; }
+  .rd-card { margin-bottom: 12px; padding: 14px 16px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); color: var(--dim); font: 13.5px/1.6 var(--ui); }
+  .rd-card b { display: block; margin-bottom: 2px; color: var(--hi); font-size: 14px; }
+  .rd-card p { margin: 0 0 10px; }
+  .rd-card.err { border-color: rgba(247,118,142,.5); }
+  .rd-card button { padding: 7px 16px; border-radius: 99px; background: var(--green); color: #14151f; font: 700 12.5px var(--ui); }
+  .rd-card button:hover { filter: brightness(1.1); }
+  .rd-bar { height: 4px; margin-top: 4px; border-radius: 99px; background: var(--line); overflow: hidden; }
+  .rd-bar i { display: block; height: 100%; width: 35%; border-radius: 99px; background: var(--accent); animation: rd-slide 1.2s ease-in-out infinite alternate; }
+  @keyframes rd-slide { from { margin-left: 0; } to { margin-left: 65%; } }
+  .rd-foot { margin: 18px 0 0; color: var(--faint); font: 12px/1.6 var(--ui); }
+  .rd-empty { padding: 26px; text-align: center; color: var(--faint); border: 1px dashed var(--line); border-radius: 14px; font: 14px/1.6 var(--ui); }
   .code { width: 100%; display: flex; flex-direction: column; min-height: 100%; }
   .body { display: flex; flex: 1; position: relative; padding-top: 6px; }
   .gutter { flex: none; }
@@ -449,7 +471,11 @@
     .ph-title, .ph-msg { display: none; }
     .pips i { width: 13px; height: 9px; }
     .ph-count { margin-right: auto; }
-    #ph-next, #ph-save { height: 34px; }
+    #ph-next, #ph-save, #ph-focus { height: 34px; }
+    #ph-save { min-width: 0; }
+    #ph-focus { width: 34px; padding: 0; justify-content: center; }
+    #ph-focus span { display: none; }                  /* icon only on a phone, so the header stays on one line */
+    #ph-focus svg { width: 16px; height: 16px; }
     .gutter .ln { width: 44px; padding-right: 12px; }
     #scroll { font-size: 17px; }
     .prac-tabs { padding: 4px 10px 0; }
@@ -473,6 +499,47 @@
     #qo { padding-top: 5vh; }
     .qo-box input { font-size: 16px; }
   }
+
+  /* ---------- focus mode: nothing but the page you write on ---------- */
+  #fbar { display: none; position: absolute; top: 0; left: 0; right: 12px; z-index: 6; align-items: center; gap: 12px; padding: 12px 18px 22px;
+          background: linear-gradient(var(--bg) 55%, transparent); pointer-events: none; opacity: .6; transition: opacity .35s; }
+  html.focus #fbar { display: flex; }
+  #fbar:hover, #fbar:focus-within, #fbar.alert { opacity: 1; }
+  html.typing #fbar:not(.alert) { opacity: 0; }
+  #fbar button, .fb-seg { pointer-events: auto; }
+  html.typing #fbar:not(.alert) button, html.typing #fbar:not(.alert) .fb-seg { pointer-events: none; }
+  .fb-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--faint); font: 13px var(--ui); }
+  .fb-title b { margin-right: 10px; color: var(--dim); font: 600 14px var(--jp); }
+  .fb-seg { display: flex; flex: none; padding: 2px; border-radius: 99px; background: var(--card); border: 1px solid var(--line); }
+  .fb-seg button { padding: 4px 13px; border-radius: 99px; font-size: 12px; color: var(--dim); }
+  .fb-seg button:hover { color: var(--hi); }
+  .fb-seg button.on { background: var(--accent-soft); color: var(--hi); font-weight: 600; }
+  #fb-count { flex: none; font: 700 12px var(--ui); color: var(--dim); font-variant-numeric: tabular-nums; }
+  #fb-count.done { color: var(--green); }
+  #fb-save { flex: none; padding: 4px 8px; border-radius: 99px; font-size: 12px; color: var(--green); white-space: nowrap; }
+  #fb-save[data-state="dirty"], #fb-save[data-state="saving"] { color: var(--yellow); }
+  #fb-save[data-state="err"] { color: #14151f; background: var(--pink); font-weight: 700; }
+  #fb-exit { flex: none; padding: 4px 12px; border-radius: 99px; border: 1px solid var(--line); font-size: 12px; color: var(--dim); }
+  #fb-exit:hover { color: var(--hi); border-color: var(--accent-line); }
+
+  html.focus #top, html.focus #status, html.focus #activity, html.focus #sidebar, html.focus #tabs, html.focus #bar, html.focus #panel, html.focus #bnav,
+  html.focus #ref, html.focus #splitter, html.focus .prac-head, html.focus .prac-tabs, html.focus .gutter { display: none !important; }
+  html.focus #app, html.focus #col { grid-template-rows: minmax(0, 1fr); }
+  html.focus #scroll { font-size: 20px; }
+  html.focus .body { padding-top: 62px; }
+  html.focus .code { max-width: 920px; margin: 0 auto; }
+  html.focus #ta { padding: 0 28px 0 26px; }
+  html.focus #readings { padding-top: 62px; }
+  @media (max-width: 720px) {
+    #fbar { gap: 8px; padding: 8px 10px 18px; }
+    .fb-title { display: none; }
+    #fbar .fb-seg { margin-right: auto; }
+    html.focus .body { padding-top: 52px; }
+    html.focus #ta { padding: 0 14px 0 14px; }
+    html.focus #scroll { font-size: 18px; }
+    html.focus #readings { padding: 52px 12px 32px; }
+    .rd-ja { font-size: 21px; }
+  }
 </style>
 </head>
 <body>
@@ -483,6 +550,7 @@
   <symbol id="i-chev" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4"/></symbol>
   <symbol id="i-x" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
   <symbol id="i-panel" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M2 9.5h12"/></symbol>
+  <symbol id="i-focus" viewBox="0 0 16 16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></symbol>
 </svg>
 
 <div id="app">
@@ -568,15 +636,28 @@
               <span class="ph-msg" id="ph-msg"></span>
               <button id="ph-next" hidden title="Jump to the next point you haven't finished (Alt+N)">Next point →</button>
               <button id="ph-save" data-state="clean" title="Save now (Ctrl+S)">✓ Saved</button>
+              <button id="ph-focus" aria-pressed="false" aria-label="Focus mode" title="Focus mode: hide everything except the page you're writing on (Alt+Z)"><svg class="ic"><use href="#i-focus"/></svg><span>Focus</span></button>
             </div>
             <div class="prac-tabs" id="ptabs">
               <button data-m="write" class="on">✎ Write</button>
+              <button data-m="readings" title="Your sentences with the reading of every kanji">Readings</button>
               <button data-m="review" title="Your teacher's corrections">Review <b id="rv-count"></b></button>
               <button id="teacher" class="tbtn" aria-pressed="false" hidden title="For your teacher: mark sentences correct or write a correction">✍ Teacher mode</button>
             </div>
             <div id="scroll"></div>
+            <div id="readings"></div>
             <div id="review"></div>
           </div>
+        </div>
+        <div id="fbar">
+          <div class="fb-title" id="fb-title"></div>
+          <div class="fb-seg" role="group" aria-label="Show">
+            <button data-m="write" class="on">Write</button>
+            <button data-m="readings" title="Your sentences with the reading of every kanji">Readings</button>
+          </div>
+          <span id="fb-count"></span>
+          <button id="fb-save" data-state="clean" title="Save now (Ctrl+S). It also saves automatically.">✓ Saved</button>
+          <button id="fb-exit" title="Leave focus mode (Alt+Z)">Exit focus</button>
         </div>
         <div id="welcome">
           <div class="mark">文</div>
@@ -587,6 +668,7 @@
             <tr><td><kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></td><td>Previous / next point</td></tr>
             <tr><td><kbd>Ctrl</kbd> + <kbd>S</kbd></td><td>Save now (it also autosaves)</td></tr>
             <tr><td><kbd>Ctrl</kbd> + <kbd>E</kbd></td><td>Show / hide the examples</td></tr>
+            <tr><td><kbd>Alt</kbd> + <kbd>Z</kbd></td><td>Focus mode: just the page you write on</td></tr>
             <tr><td><kbd>Alt</kbd> + <kbd>G</kbd></td><td>Grayscale on / off</td></tr>
             <tr><td><kbd>Ctrl</kbd> + <kbd>B</kbd> / <kbd>J</kbd></td><td>Toggle the list / the save log</td></tr>
           </table>
@@ -656,7 +738,9 @@ python3 server.py</pre>
   const stateOf = n => n >= GOAL ? 'done' : n > 0 ? 'wip' : 'todo';
   document.documentElement.style.setProperty('--goal', GOAL);
   const clock = () => new Date().toLocaleTimeString('en-GB');
-  const KANJI = /[㐀-䶿一-鿿豈-﫿々〆〇ヶ]/;
+  const KANJI_CLASS = '\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff々〆〇ヶ';   // same set of characters as KANJI in furigana.py
+  const KANJI = new RegExp(`[${KANJI_CLASS}]`);
+  const KANJI_RUNS = new RegExp(`[${KANJI_CLASS}]+|[^${KANJI_CLASS}]+`, 'g');
   const LH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--LH')) || 30;
 
   const store = {
@@ -682,7 +766,7 @@ python3 server.py</pre>
   const scroller = $('#scroll');
 
   // what the user chose, independent of auto-hiding on narrow windows
-  const prefs = { side: true, panel: false, ref: true, tr: true, cloze: false, furi: 'hover', split: null, view: 'list' };
+  const prefs = { side: true, panel: false, ref: true, tr: true, cloze: false, furi: 'hover', split: null, view: 'list', focus: false };
   const FURI = ['hover', 'always', 'off'];
 
   /* ---------- grayscale ---------- */
@@ -723,6 +807,12 @@ python3 server.py</pre>
     b.title = state === 'clean' && savedAt[active]
       ? `Saved to ${where(active)} at ${new Date(savedAt[active]).toLocaleTimeString('en-GB')}. It saves automatically; click to save again, or press Ctrl+S.`
       : `Save to ${where(active)} now (Ctrl+S). It also saves automatically a moment after you stop typing.`;
+
+    // focus mode hides the status bar, so the focus bar repeats the save state (and stays visible if saving fails)
+    const f = $('#fb-save');
+    f.dataset.state = state;
+    f.textContent = { err: '⚠ Not saved. Retry', saving: 'Saving…', dirty: '● Unsaved', clean: '✓ Saved' }[state];
+    $('#fbar').classList.toggle('alert', state === 'err');
   }
 
   const dayStr = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -765,6 +855,7 @@ python3 server.py</pre>
     const c = $('#ph-count');
     c.textContent = n > GOAL ? `${GOAL}/${GOAL} +${n - GOAL}` : `${n}/${GOAL}`;
     c.classList.toggle('done', n >= GOAL);
+    const fc = $('#fb-count'); fc.textContent = active == null ? '' : c.textContent; fc.classList.toggle('done', n >= GOAL);
     $('#ph-msg').textContent = (MSGS.filter(([from]) => n >= from).pop() || MSGS[0])[1];
     $('#ph-next').hidden = !(n >= GOAL && nextTodoId() != null);
     $('#bn-count').textContent = active == null ? '' : ` ${Math.min(n, GOAL)}/${GOAL}`;
@@ -881,6 +972,7 @@ python3 server.py</pre>
   let screenName = 'list', refTop = 0;
 
   function setView(v, remember = true) {
+    if (isFocus()) v = 'write';                  // focus mode is only the page you write on
     if (v !== 'list' && active == null) v = 'list';
     if (screenName === 'examples') refTop = $('#ref').scrollTop;          // hidden panes forget their scroll position
     screenName = v;
@@ -1071,6 +1163,8 @@ python3 server.py</pre>
   function renderEditor() {
     const split = $('#split'), welcome = $('#welcome');
     hidePop();
+    applyFocus();                                  // focus mode only applies while a point is open
+    refreshFocusBar();
     if (active == null) { split.hidden = true; welcome.hidden = false; $('#tools').hidden = true; scroller.innerHTML = ''; $('#ref').innerHTML = ''; ta = null; $('#pos').textContent = ''; return; }
     welcome.hidden = true; split.hidden = false; $('#tools').hidden = false;
 
@@ -1085,7 +1179,10 @@ python3 server.py</pre>
     gutterLines = 0;
 
     ta.addEventListener('input', onInput);
-    ta.addEventListener('keydown', () => { hidePop(); requestAnimationFrame(onCursor); });
+    ta.addEventListener('keydown', e => {
+      hidePop(); requestAnimationFrame(onCursor);
+      if (isFocus() && !e.ctrlKey && !e.metaKey && !e.altKey && !['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape'].includes(e.key)) root.classList.add('typing');   // the focus bar steps aside while you write
+    });
     ['keyup', 'mouseup', 'focus'].forEach(ev => ta.addEventListener(ev, onCursor));
     ta.addEventListener('blur', () => { curEl.style.visibility = 'hidden'; });
     ta.addEventListener('mousedown', e => {   // click an empty slot below your text: start a fresh line there
@@ -1105,6 +1202,7 @@ python3 server.py</pre>
     else { const n = ta.value.length; ta.setSelectionRange(n, n); scroller.scrollTop = 0; }
     onCursor();
     if ($('#prac').dataset.mode === 'review') { editingKey = null; renderReview(); }
+    else if ($('#prac').dataset.mode === 'readings') renderReadings();
   }
 
   function autosize() {
@@ -1143,6 +1241,7 @@ python3 server.py</pre>
   function onInput() {
     const id = active;
     hidePop(); hoverLine = -1;
+    if (isFocus()) root.classList.add('typing');   // also covers IME input, paste and dictation, which may not send key events
     const before = count(texts[id]);
     texts[id] = ta.value;
     dirty.add(id);
@@ -1162,7 +1261,7 @@ python3 server.py</pre>
   function hidePop() { clearTimeout(hoverTimer); pop.style.display = 'none'; }
 
   function onTaMove(e) {
-    if (prefs.furi === 'off' || MODE === 'browser') return;   // furigana for your own lines needs the dictionary on the server
+    if (prefs.furi === 'off' || MODE === 'browser' || isFocus()) return;   // hover furigana on your own lines needs the server's dictionary; focus mode shows no popups (use Readings)
     lastX = e.clientX;
     const line = Math.floor((e.clientY - ta.getBoundingClientRect().top) / LH);
     if (line === hoverLine) return;
@@ -1209,7 +1308,9 @@ python3 server.py</pre>
     else toast(`🏆 <b>That's all of them!</b> Every grammar point has ${GOAL} sentences.`);
   }
   $('#ph-next').addEventListener('click', gotoNextTodo);
-  $('#ph-save').addEventListener('click', () => { saveAll().then(() => { log('saved by button', 'info'); ta?.focus(); }); });
+  const saveByButton = () => { saveAll().then(() => { log('saved by button', 'info'); ta?.focus(); }); };
+  $('#ph-save').addEventListener('click', saveByButton);
+  $('#fb-save').addEventListener('click', saveByButton);
   $('#fchips').addEventListener('click', e => { const b = e.target.closest('button[data-f]'); if (b) { $('#filter').value = b.dataset.f; applyFilter(); } });
 
   /* ---------- storage: server files, or this browser ---------- */
@@ -1227,8 +1328,9 @@ python3 server.py</pre>
     return (deviceCache = id);
   }
   const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
-  const loadScript = src => new Promise((res, rej) => {
+  const loadScript = (src, integrity) => new Promise((res, rej) => {
     const s = document.createElement('script');
+    if (integrity) { s.integrity = integrity; s.crossOrigin = 'anonymous'; }   // a script from a CDN must match the exact file we checked
     s.src = src; s.onload = res; s.onerror = () => rej(new Error('could not load ' + src));
     document.head.appendChild(s);
   });
@@ -1381,6 +1483,47 @@ python3 server.py</pre>
     if (n) activate(n.id);
   }
 
+  /* ---------- focus mode ---------- */
+  // Hides everything except the page you write on. A small bar (Write / Readings, save state, Exit) fades away while you type
+  // and comes back when you move the mouse or tap. It only applies while a grammar point is open.
+  const root = document.documentElement;
+  const isFocus = () => !!prefs.focus && active != null;
+
+  function applyFocus() {
+    const on = isFocus();
+    root.classList.toggle('focus', on);
+    if (!on) root.classList.remove('typing');
+    $('#ph-focus').setAttribute('aria-pressed', String(on));
+    if (on && $('#prac').dataset.mode === 'review') setPracMode('write');   // corrections aren't part of the focus page
+    autosize();
+  }
+
+  function refreshFocusBar() {
+    const g = active == null ? null : byId.get(active);
+    $('#fb-title').innerHTML = g ? `<b>${esc(g.title)}</b>${esc(g.meanings[0] || '')}` : '';
+  }
+
+  function setFocus(on, remember = true) {
+    if (on && active == null) return;
+    prefs.focus = on;
+    if (remember) persistSession();
+    closeMenu(); hidePop();
+    applyFocus();
+    if (isPhone()) setView('write', false);
+    else if (on && $('#prac').dataset.mode === 'write') ta?.focus({ preventScroll: true });
+    onCursor();
+  }
+
+  let lastMouse = [0, 0];
+  addEventListener('mousemove', e => {          // a real mouse move (not the browser re-sending one after the text grows) brings the bar back
+    if (Math.abs(e.clientX - lastMouse[0]) + Math.abs(e.clientY - lastMouse[1]) < 4) return;
+    lastMouse = [e.clientX, e.clientY];
+    root.classList.remove('typing');
+  }, { passive: true });
+  addEventListener('pointerdown', () => root.classList.remove('typing'), { passive: true });
+  $('#ph-focus').addEventListener('click', () => setFocus(true));
+  $('#fb-exit').addEventListener('click', () => setFocus(false));
+
   /* ---------- examples pane: toggles, layout, splitter ---------- */
   const split = $('#split'), refEl = $('#ref'), splitter = $('#splitter');
 
@@ -1445,7 +1588,12 @@ python3 server.py</pre>
 
   addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
-    if (mod && !e.shiftKey && !e.altKey && k === 's') { e.preventDefault(); saveAll().then(() => log('manual save complete', 'info')); }
+    if (isFocus() && mod && !e.shiftKey && !e.altKey && 'bej'.includes(k) && k.length === 1) {   // list / examples / log: leave focus mode, then show it
+      e.preventDefault(); setFocus(false);
+      if (k === 'b') setSide(true); else if (k === 'e') setPref('ref', true); else setPanel(true);
+    }
+    else if (e.altKey && !mod && e.code === 'KeyZ') { e.preventDefault(); setFocus(!prefs.focus); }
+    else if (mod && !e.shiftKey && !e.altKey && k === 's') { e.preventDefault(); saveAll().then(() => log('manual save complete', 'info')); }
     else if (mod && !e.shiftKey && k === 'p') { e.preventDefault(); openQO(); }
     else if (mod && !e.shiftKey && k === 'b') { e.preventDefault(); toggleSide(); }
     else if (mod && !e.shiftKey && k === 'j') { e.preventDefault(); togglePanel(); }
@@ -1603,12 +1751,95 @@ python3 server.py</pre>
   }
   function setPracMode(m) {
     $('#prac').dataset.mode = m;
-    document.querySelectorAll('#ptabs button[data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+    document.querySelectorAll('#ptabs button[data-m], #fbar button[data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === m));
     $('#teacher').hidden = m !== 'review';
     if (m !== 'review') setTeacher(false);
-    if (m === 'review') { hidePop(); renderReview(); } else { autosize(); onCursor(); }
+    if (m === 'review') { hidePop(); renderReview(); }
+    else if (m === 'readings') { hidePop(); renderReadings(); }
+    else { autosize(); onCursor(); if (isFocus() && !isPhone()) ta?.focus({ preventScroll: true }); }
   }
-  document.querySelectorAll('#ptabs button[data-m]').forEach(b => b.addEventListener('click', () => setPracMode(b.dataset.m)));
+  document.querySelectorAll('#ptabs button[data-m], #fbar button[data-m]').forEach(b => b.addEventListener('click', () => setPracMode(b.dataset.m)));
+
+  /* ---------- readings: your sentences with the kana above every kanji ---------- */
+  // With server.py running the readings come from SudachiPy (the same as the examples' hover furigana). Without it
+  // (the plain file, or the website) they come from kuromoji, which runs in this browser. Its dictionary is about 18 MB, so
+  // it is only downloaded when you ask for it, then your browser keeps it. Your sentences are never sent anywhere.
+  const KURO = { base: 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/', sri: 'sha384-LCHxvFGxgpk9Bl+0+OaV6Rf24HQamJPrNHIo6VGkXkVgGWRvl68eqUwCW5PWqfwh' };
+  const LS_KURO = 'gp2:kuromoji';              // set once the dictionary has loaded, so next time it loads by itself
+  let kuro = null, kuroLoading = null, rdSeq = 0;
+
+  function loadKuro() {
+    if (kuro) return Promise.resolve(kuro);
+    return kuroLoading ||= (async () => {
+      if (!window.kuromoji) await loadScript(KURO.base + 'build/kuromoji.js', KURO.sri);
+      kuro = await new Promise((res, rej) => window.kuromoji.builder({ dicPath: KURO.base + 'dict/' }).build((e, t) => e ? rej(e) : res(t)));
+      store.set(LS_KURO, true);
+      return kuro;
+    })().finally(() => { kuroLoading = null; });
+  }
+
+  const toHira = s => s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+  // Split a word into [text, reading|null] so that only the kanji carry a reading: 食べる -> [食, た] [べる, null]  (same idea as _align in furigana.py)
+  function alignReading(surface, reading) {
+    const runs = surface.match(KANJI_RUNS) || [];
+    const re = new RegExp('^' + runs.map(r => KANJI.test(r[0]) ? '(.+?)' : toHira(r).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('') + '$');
+    const m = re.exec(reading);
+    if (!m) return [[surface, reading]];
+    let g = 1;
+    return runs.map(r => KANJI.test(r[0]) ? [r, m[g++]] : [r, null]);
+  }
+  function kuroSegments(tk, text) {
+    const out = [];
+    for (const t of tk.tokenize(text)) {
+      const surface = t.surface_form, reading = t.reading && t.reading !== '*' ? toHira(t.reading) : '';
+      const parts = KANJI.test(surface) && reading && reading !== surface ? alignReading(surface, reading) : [[surface, null]];
+      for (const [s, r] of parts) {
+        const last = out[out.length - 1];
+        if (r == null && last && last[1] == null) last[0] += s; else out.push([s, r]);   // merge neighbouring plain text
+      }
+    }
+    return out.map(p => p[0]).join('') === text ? out : null;
+  }
+
+  async function ownReadings(lines) {          // [[text, reading|null], …] for each line, or null where it can't be done
+    if (MODE === 'server') { furiDownAt = 0; return furigana(lines); }
+    const tk = await loadKuro();
+    return lines.map(l => KANJI.test(l) ? kuroSegments(tk, l) : null);
+  }
+
+  async function renderReadings({ consent = false } = {}) {
+    const id = active, box = $('#readings');
+    if (id == null || $('#prac').dataset.mode !== 'readings') return;
+    const seq = ++rdSeq, stale = () => seq !== rdSeq || active !== id || $('#prac').dataset.mode !== 'readings';
+    const lines = (texts[id] || '').split('\n').map(l => l.trim()).filter(Boolean);
+    const rowsHtml = (segs = []) => lines.map((l, i) => `<div class="rd-row"><span class="rd-n">${i + 1}</span><div class="rd-ja" lang="ja">${segs[i] ? render(charsPlain(l), segs[i]) : esc(l)}</div></div>`).join('');
+    const page = msg => box.innerHTML = `<div class="rd-wrap">${msg}<div id="rd-rows">${rowsHtml()}</div>` +
+      `<p class="rd-foot">Readings are worked out automatically, so a reading can occasionally be wrong. Check a dictionary if one looks off.</p></div>`;
+    const card = (cls, html) => `<div class="rd-card ${cls}">${html}</div>`;
+
+    if (!lines.length) { box.innerHTML = `<div class="rd-wrap"><div class="rd-empty">Nothing to read yet. Write some sentences on the <b>Write</b> tab first.</div></div>`; return; }
+    if (!lines.some(l => KANJI.test(l))) { page(card('', '<b>No kanji in these sentences</b>There is nothing to read out here.')); return; }
+    if (MODE === 'browser' && !kuro && !consent && !store.get(LS_KURO, false)) {
+      page(card('', '<b>Readings need a Japanese dictionary</b><p>It is a one-time download of about 18 MB (it is kept in your browser afterwards). The reading is worked out on this device, and your sentences are not sent anywhere.</p>' +
+        '<button data-rd="load">Download and show readings</button>'));
+      return;
+    }
+    page(MODE === 'browser' && !kuro ? card('', '<b>Getting the dictionary…</b>This takes a little while the first time. You can keep this page open.<div class="rd-bar"><i></i></div>') : '');
+    try {
+      const segs = await ownReadings(lines);
+      if (stale()) return;
+      if (MODE === 'server' && lines.some((l, i) => KANJI.test(l) && !segs[i])) throw new Error('no furigana dictionary');
+      page('');
+      $('#rd-rows').innerHTML = rowsHtml(segs);
+    } catch (e) {
+      if (stale()) return;
+      console.error(e);
+      page(MODE === 'server'
+        ? card('err', '<b>The server can\'t make readings yet</b><p>Run <code>python3 setup_furigana.py</code> once, then start <code>server.py</code> again.</p><button data-rd="retry">Try again</button>')
+        : card('err', '<b>Couldn\'t download the dictionary</b><p>Are you offline? Readings need a connection the first time. Your sentences are fine.</p><button data-rd="load">Try again</button>'));
+    }
+  }
+  $('#readings').addEventListener('click', e => { if (e.target.closest('button[data-rd]')) renderReadings({ consent: true }); });
   $('#teacher').addEventListener('click', () => setTeacher(!teacherMode));
 
   /* ---------- backup & restore (browser mode) ---------- */
@@ -1805,6 +2036,7 @@ python3 server.py</pre>
     ta.setSelectionRange(Math.min(pos, ta.value.length), Math.min(pos, ta.value.length));
     autosize(); renderGutter(); onCursor();
     renderReview(true);
+    if ($('#prac').dataset.mode === 'readings') renderReadings();
   }
 
   async function syncOnce() {

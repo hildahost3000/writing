@@ -7,11 +7,14 @@ plain file you open (no install) or with a tiny local server that keeps your sen
 - A goal of **10 sentences per point**, with progress rings, a daily streak and a "next point" button to keep you going
 - A **phone layout** (one screen at a time, tap for furigana) and optional **sync across your devices** on the hosted site
 - A **Review tab** where your teacher can correct your sentences, with the changes highlighted
+- A **Focus mode** that hides everything except the page you're writing on, like a notepad
+- A **Readings tab** that shows the sentences you wrote with the reading of every kanji above it
 - **Furigana on hover** for the examples (and for the lines you write, with the server)
 - Study modes: hide the translations, or blank out the target grammar (cloze)
 - A **grayscale switch** for when other people might see your screen
 
-Nothing is uploaded anywhere: your sentences stay on your computer.
+Nothing is uploaded anywhere: your sentences stay on your computer. (The one thing the page downloads is the reading
+dictionary for the Readings tab when you use the browser edition; see [Readings](#readings).)
 
 ## Quick start
 
@@ -55,7 +58,8 @@ uses the browser. The header shows which (`⚡ localhost:8765` or `💾 Saved in
 | Where sentences live | Your browser's storage | `sentences/` (plain `.txt` files) |
 | Backup | You download one (💾 Backup) | They're already files |
 | Furigana on the examples | Yes | Yes |
-| Furigana on lines you write | No | Yes (needs `setup_furigana.py`) |
+| Readings tab (kanji readings for your sentences) | Yes (one-time ~18 MB dictionary download) | Yes (needs `setup_furigana.py`) |
+| Furigana popup when you hover a line you wrote | No | Yes (needs `setup_furigana.py`) |
 
 ## Using it
 
@@ -122,6 +126,7 @@ Drag the divider between the panes to resize it, or double-click it to reset.
 | `Alt+↑` / `Alt+↓` | Previous / next point |
 | `Ctrl+S` | Save now (it also saves automatically) |
 | `Ctrl+E` | Show or hide the examples |
+| `Alt+Z` | Focus mode on / off |
 | `Alt+G` | Grayscale on / off |
 | `Ctrl+B` / `Ctrl+J` | Show or hide the list / the save log |
 
@@ -130,6 +135,35 @@ The grammar highlight is also bold and underlined, so it stays visible without c
 
 The sidebar filter understands numbers, Japanese, English, `mine` (the 24 points from the original hand-made list,
 marked ◆), and `todo`, `wip` or `done`.
+
+### Focus mode
+
+When you just want to write, click **Focus** (next to Save above your sentences) or press `Alt+Z`. The top bar, the list, the
+tabs, the examples and the status bar all disappear, and you're left with the page you write on, like a notepad. The ten ruled
+lines are still there so you can see how many are left.
+
+- A small bar at the top (the point's name, **Write / Readings**, your count, the save state and **Exit focus**) fades away while you
+  type and comes back when you move the mouse or tap the screen. If saving ever fails, the save state stays visible and
+  turns red, so you never lose work without noticing.
+- It saves automatically as usual (`Ctrl+S` still works). `Alt+↑` / `Alt+↓` move to the previous / next point and `Alt+N` jumps to the next
+  one you haven't finished, all without leaving focus mode. `Ctrl+P` still opens the "go to point" box.
+- `Ctrl+B`, `Ctrl+E` or `Ctrl+J` leave focus mode and show the list, the examples or the log.
+- The app remembers your choice, so it opens in focus mode next time. On a phone, tap the corner icon next to Save; tap
+  anywhere to bring the bar back.
+
+### Readings
+
+Forgot how to read a kanji you used? After writing, open the **Readings** tab (or **Readings** in the focus bar). Each sentence you
+wrote is shown with the reading above every kanji, always visible. It follows you from point to point, so you can come back
+any day and read your old sentences.
+
+- **With the server** the readings come from the same dictionary as the examples' furigana (`setup_furigana.py`).
+- **In the browser edition** (opening the file, or the website) the readings are worked out on your device by
+  [kuromoji.js](https://github.com/takuyaa/kuromoji.js). Its dictionary is about **18 MB**, so the first time you open the tab it asks before
+  downloading it (from the jsDelivr CDN, checked against a fixed hash), and your browser keeps it afterwards. Your sentences are
+  never sent anywhere. If you're offline the first time, the tab says so and your sentences are untouched.
+- Readings are made automatically, so one can occasionally be wrong (for example the reading of a counter, or a word with
+  several readings). Check a dictionary if something looks off.
 
 ### Teacher corrections
 
@@ -246,9 +280,12 @@ to configure; the host just serves `index.html` and `data/grammar.js`.
   A persistent service problem can mean the Blob store's monthly limit was reached; it resets after 30 days.
 - **"Could not start on port 8765"**: it's probably already running (check other terminal tabs), or something else
   uses that port. Try `python3 server.py 9000`.
-- **No furigana on my own lines**: that needs the server and the dictionary. Run `python3 setup_furigana.py`, start
+- **No furigana popup when I hover my own lines**: that needs the server and the dictionary. Run `python3 setup_furigana.py`, start
   `python3 server.py`, and check that the toolbar button isn't set to Off. The server prints `Furigana: ready` or
-  `NOT available` when it starts.
+  `NOT available` when it starts. (The **Readings** tab doesn't need the hover; in the browser edition it uses its own dictionary.)
+- **Readings says "Couldn't download the dictionary"** (browser edition): the first use needs an internet connection to fetch
+  the reading dictionary (about 18 MB). Connect and press **Try again**. Your browser normally keeps the dictionary afterwards, so later uses don't need a connection.
+- **Readings says "The server can't make readings yet"**: run `python3 setup_furigana.py` once and restart `server.py`.
 - **`setup_furigana.py` says no wheel matches**: use a standard Python from python.org or your OS, 3.10 or newer.
   Or run `pip install --target vendor -r requirements.txt` yourself.
 - **A reading looks wrong**: readings are generated automatically, so an ambiguous kanji can occasionally get
