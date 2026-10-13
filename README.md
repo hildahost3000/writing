@@ -50,7 +50,8 @@ python3 server.py --no-open  # don't open the browser automatically
 ```
 
 The page works out which way it's running when it loads: if `server.py` is running it uses the folder, otherwise it
-uses the browser. The header shows which (`⚡ localhost:8765` or `💾 Saved in this browser`).
+uses the browser. (In the browser edition you'll see a **💾 Backup** button in the top bar; with the server there isn't one,
+because your sentences are already files.)
 
 | | A. Open the file | B. Local server |
 | --- | --- | --- |
@@ -70,12 +71,13 @@ sentences in the **Your sentences** pane, one per line.
 
 Your sentences **save automatically** a moment after you stop typing. The **Save** button in the practice header shows
 the state of the point you're on: yellow **Save** when something is unsaved, **✓ Saved** once it's stored (hover it for
-where and when). Click it, or press `Ctrl+S`, to save immediately.
+where and when). Click it, or press `Ctrl+S`, to save immediately. If saving ever fails, the button turns red (**⚠ Retry save**)
+and a message explains why; your text is kept in the browser and it keeps retrying.
 
 **If you open the file (A)**, sentences live in your browser's storage on that computer. That's fast and private, but:
 
-- Clearing the site's data (or using a private window) erases them. Download a **💾 Backup** now and then; the status
-  bar turns yellow when you have work that isn't backed up yet.
+- Clearing the site's data (or using a private window) erases them. Download a **💾 Backup** now and then; the Backup
+  button in the top bar gets a dot when you have work that isn't backed up yet.
 - Safari may clear a site's storage after about a week without a visit. If you use Safari, back up regularly.
 - If you open `index.html` by double-clicking it, **don't move or rename the folder afterwards**. Some browsers, such as
   Firefox, may tie saved sentences to the file's location. A backup restores them anyway. If double-clicking ever doesn't
@@ -126,9 +128,8 @@ Drag the divider between the panes to resize it, or double-click it to reset.
 | `Alt+↑` / `Alt+↓` | Previous / next point |
 | `Ctrl+S` | Save now (it also saves automatically) |
 | `Ctrl+E` | Show or hide the examples |
-| `Alt+Z` | Focus mode on / off |
+| `Alt+Z` | Focus mode on / off (it's also the **Focus** switch in the top bar) |
 | `Alt+G` | Grayscale on / off |
-| `Ctrl+B` / `Ctrl+J` | Show or hide the list / the save log |
 
 **Grayscale** is on the first time you open the app, and the app remembers your last choice in that browser.
 The grammar highlight is also bold and underlined, so it stays visible without colour.
@@ -138,18 +139,18 @@ marked ◆), and `todo`, `wip` or `done`.
 
 ### Focus mode
 
-When you just want to write, click **Focus** (next to Save above your sentences) or press `Alt+Z`. The top bar, the list, the
-tabs, the examples and the status bar all disappear, and you're left with the page you write on, like a notepad. The ten ruled
-lines are still there so you can see how many are left.
+When you just want to write, turn on the **Focus** switch in the top bar (next to Grayscale), or press `Alt+Z`. The top bar, the
+list and the examples all disappear, and you're left with the page you write on, like a notepad. The ten ruled lines are
+still there so you can see how many are left.
 
-- A small bar at the top (the point's name, **Write / Readings**, your count, the save state and **Exit focus**) fades away while you
+- A small bar at the top (the point's name, **Write / Readings**, your count, the save state and the same **Focus** switch, to turn it off) fades away while you
   type and comes back when you move the mouse or tap the screen. If saving ever fails, the save state stays visible and
   turns red, so you never lose work without noticing.
 - It saves automatically as usual (`Ctrl+S` still works). `Alt+↑` / `Alt+↓` move to the previous / next point and `Alt+N` jumps to the next
   one you haven't finished, all without leaving focus mode. `Ctrl+P` still opens the "go to point" box.
-- `Ctrl+B`, `Ctrl+E` or `Ctrl+J` leave focus mode and show the list, the examples or the log.
-- The app remembers your choice, so it opens in focus mode next time. On a phone, tap the corner icon next to Save; tap
-  anywhere to bring the bar back.
+- `Ctrl+E` leaves focus mode and shows the examples.
+- The app remembers your choice, so it opens in focus mode next time. On a phone, the switch is the corner icon next to
+  Save; tap anywhere to bring the bar back.
 
 ### Readings
 

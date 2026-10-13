@@ -36,7 +36,7 @@
   ::-webkit-scrollbar-corner { background: transparent; }
 
   /* --vvh is the visible height, kept up to date by script (it shrinks when a phone keyboard opens) */
-  #app { display: grid; grid-template-rows: 52px 1fr 28px; height: var(--vvh, 100vh); overflow: hidden; }
+  #app { display: grid; grid-template-rows: 52px 1fr; height: var(--vvh, 100vh); overflow: hidden; }
 
   /* ---------- header ---------- */
   #top { display: flex; align-items: center; gap: 18px; padding: 0 16px; background: var(--bg2); border-bottom: 1px solid var(--line); }
@@ -57,15 +57,8 @@
 
   #main { display: flex; min-height: 0; }
 
-  /* ---------- activity bar + sidebar ---------- */
-  #activity { flex: none; width: 52px; background: var(--bg2); border-right: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 10px; }
-  #activity button { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; color: var(--dim); }
-  #activity button:hover { background: var(--card); color: var(--hi); }
-  #activity button.on { background: var(--accent-soft); color: var(--accent); }
-  #activity svg { width: 20px; height: 20px; }
-
+  /* ---------- sidebar ---------- */
   #sidebar { flex: none; width: 300px; background: var(--bg2); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
-  #sidebar[hidden] { display: none; }
   .side-head { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 18px 8px; }
   .side-head h3 { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); }
   .side-head span { font-size: 12px; color: var(--faint); }
@@ -104,27 +97,8 @@
   #nomatch[hidden] { display: none; }
 
   /* ---------- editor column ---------- */
-  #col { flex: 1; display: grid; grid-template-rows: 42px 42px 1fr auto; min-width: 0; min-height: 0; background: var(--bg); }
-  #tabs { display: flex; gap: 3px; padding: 8px 10px 0; background: var(--bg2); overflow-x: auto; overflow-y: hidden; border-bottom: 1px solid var(--line); }
-  #tabs::-webkit-scrollbar { height: 4px; }
-  .tab { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 6px 0 13px; border-radius: 10px 10px 0 0; color: var(--dim); cursor: pointer; white-space: nowrap; flex: none; font-family: var(--jp); font-size: 13px; }
-  .tab .tno { font: 11px var(--mono); color: var(--faint); }
-  .tab:hover { color: var(--hi); background: rgba(255,255,255,.03); }
-  .tab.on { background: var(--bg); color: var(--hi); box-shadow: inset 0 2px 0 var(--accent); }
-  .tab .x { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 6px; opacity: 0; }
-  .tab .x svg { width: 13px; height: 13px; }
-  .tab.on .x, .tab:hover .x { opacity: 1; }
-  .tab .x:hover { background: rgba(255,255,255,.1); }
-  .tab .dot { display: none; width: 8px; height: 8px; margin: 0 7px; border-radius: 50%; background: var(--yellow); }
-  .tab.dirty .x { display: none; }
-  .tab.dirty .dot { display: block; }
-  .tab.dirty:hover .x { display: grid; }
-  .tab.dirty:hover .dot { display: none; }
-
+  #col { flex: 1; display: grid; grid-template-rows: 42px 1fr; min-width: 0; min-height: 0; background: var(--bg); }
   #bar { display: flex; align-items: center; gap: 12px; padding: 0 14px 0 18px; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; }
-  #crumbs { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; overflow: hidden; color: var(--faint); font-size: 12px; }
-  #crumbs svg { width: 12px; height: 12px; flex: none; }
-  #crumbs b { font-weight: 500; color: var(--dim); overflow: hidden; text-overflow: ellipsis; }
   #tools { display: flex; gap: 6px; flex: none; }
   #tools[hidden] { display: none; }
   .tbtn { height: 28px; padding: 0 13px; border-radius: 99px; font-size: 12px; color: var(--dim); border: 1px solid var(--line); background: transparent; }
@@ -135,7 +109,7 @@
   #stage { position: relative; min-height: 0; }
   #split { position: absolute; inset: 0; display: flex; flex-direction: column; }
   #split.h { flex-direction: row; }
-  #split[hidden], #welcome[hidden] { display: none; }
+  #split[hidden] { display: none; }
   #ref { flex: 0 0 var(--ref, 45%); min-width: 0; min-height: 0; overflow: auto; padding: 18px 22px 36px; font-family: var(--jp); counter-reset: ex; }
   #ref.off, #ref.off + #splitter { display: none; }
   #splitter { flex: none; background: var(--line); position: relative; z-index: 2; touch-action: none; transition: background .15s; }
@@ -206,10 +180,11 @@
   .ph-count { flex: none; font: 700 13px var(--ui); color: var(--hi); font-variant-numeric: tabular-nums; }
   .ph-count.done { color: var(--green); }
   .ph-msg { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); font-size: 12.5px; }
+  .ph-msg.err { color: var(--pink); font-weight: 600; }
   #ph-next { flex: none; height: 28px; padding: 0 14px; border-radius: 99px; font-size: 12px; font-weight: 600; color: #14151f; background: var(--green); border: 0; }
   #ph-next[hidden] { display: none; }
   #ph-next:hover { filter: brightness(1.1); }
-  #ph-focus { flex: none; height: 28px; display: inline-flex; align-items: center; gap: 6px; padding: 0 13px; border-radius: 99px; font-size: 12px; font-weight: 600; border: 1px solid var(--line); color: var(--dim); }
+  #ph-focus { flex: none; height: 28px; display: none; align-items: center; gap: 6px; padding: 0 13px; border-radius: 99px; font-size: 12px; font-weight: 600; border: 1px solid var(--line); color: var(--dim); }
   #ph-focus:hover { border-color: var(--accent-line); color: var(--hi); }
   #ph-focus svg { width: 13px; height: 13px; }
   #ph-save { flex: none; height: 28px; min-width: 96px; padding: 0 14px; border-radius: 99px; font-size: 12px; font-weight: 600; border: 1px solid var(--line); background: transparent; color: var(--dim); }
@@ -307,32 +282,6 @@
   #furipop { position: fixed; z-index: 40; display: none; max-width: min(760px, 92vw); padding: 4px 16px 6px; border-radius: 14px; background: var(--card2); border: 1px solid var(--accent-line);
              box-shadow: 0 12px 34px rgba(0,0,0,.5); font: 19px/2.1 var(--jp); color: var(--hi); pointer-events: none; white-space: pre-wrap; }
 
-  #welcome { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 26px; text-align: center; color: var(--dim); padding: 24px; }
-  #welcome .mark { width: 92px; height: 92px; border-radius: 28px; display: grid; place-items: center; font: 700 54px var(--jp); color: #14151f; background: linear-gradient(135deg, var(--accent), var(--purple)); }
-  #welcome h1 { margin: 0; color: var(--hi); font-size: 22px; }
-  #welcome table { border-collapse: collapse; }
-  #welcome td { padding: 6px 12px; text-align: left; }
-  #welcome td:first-child { text-align: right; white-space: nowrap; }
-  kbd { font: 11px var(--ui); padding: 2px 7px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; background: var(--card); color: var(--text); }
-
-  /* ---------- output panel + status bar ---------- */
-  #panel { height: 140px; display: flex; flex-direction: column; border-top: 1px solid var(--line); background: var(--bg2); }
-  #panel[hidden] { display: none; }
-  #panel header { display: flex; align-items: center; height: 34px; padding: 0 12px 0 18px; font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--dim); flex: none; }
-  #panel header .grow { flex: 1; }
-  #panel header button { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; color: var(--dim); }
-  #panel header button:hover { background: var(--card); color: var(--hi); }
-  #panel header svg { width: 13px; height: 13px; }
-  #log { flex: 1; overflow: auto; padding: 0 18px 8px; font: 12px/1.7 var(--mono); }
-  #log .t { color: var(--faint); } #log .ok { color: var(--green); } #log .err { color: var(--pink); } #log .info { color: var(--accent); }
-
-  #status { display: flex; align-items: center; justify-content: space-between; padding: 0 6px; background: var(--bg2); border-top: 1px solid var(--line); color: var(--dim); font-size: 12px; }
-  #status > div { display: flex; height: 100%; }
-  #status .item { display: flex; align-items: center; gap: 6px; padding: 0 10px; white-space: nowrap; }
-  #status button.item:hover { background: var(--card); color: var(--hi); border-radius: 6px; }
-  #status .item svg { width: 14px; height: 14px; }
-  #savestate.ok { color: var(--green); } #savestate.dirty { color: var(--yellow); } #savestate.err { color: var(--pink); font-weight: 600; }
-
   /* ---------- quick open + offline ---------- */
   #qo { position: fixed; inset: 0; z-index: 50; display: flex; justify-content: center; align-items: flex-start; padding-top: 12vh; background: rgba(8,9,16,.55); backdrop-filter: blur(3px); }
   #qo[hidden] { display: none; }
@@ -363,8 +312,11 @@
   #bmenu b { display: block; color: var(--hi); font-size: 13px; }
   #bmenu small { display: block; margin-top: 1px; color: var(--dim); font-size: 12px; line-height: 1.4; }
   #bmenu p { margin: 4px 12px 8px; padding-top: 8px; border-top: 1px solid var(--line); color: var(--faint); font-size: 11.5px; line-height: 1.5; }
-  #bstate[hidden], #sstate[hidden] { display: none; }
-  #bstate.warn, #sstate.warn { color: var(--yellow); font-weight: 600; }
+  #backup { position: relative; }
+  #backup.warn { color: var(--yellow); border-color: rgba(224,175,104,.55); }
+  #backup.warn::after { content: ""; position: absolute; top: 4px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--yellow); }   /* a dot as well as a colour, so it shows in grayscale too */
+  #bwhen { margin: 4px 12px 8px; color: var(--dim); font-size: 12.5px; }
+  #bwhen.warn { color: var(--yellow); font-weight: 600; }
 
   /* sync */
   #sync { position: relative; }
@@ -418,7 +370,7 @@
   @media (max-width: 720px) {
     html, body { overscroll-behavior: none; }
     #app { grid-template-rows: 52px 1fr auto; }
-    #status, #activity, #tabs, #crumbs, #t-ref { display: none; }
+    #t-ref { display: none; }
 
     #top { gap: 8px; padding: 0 10px; }
     .brand > div:not(.logo) { display: none; }
@@ -437,7 +389,7 @@
     #filter { font-size: 16px; padding: 11px 12px 11px 36px; }
     #fchips button { padding: 8px 0; font-size: 12.5px; }
 
-    #col { grid-template-rows: auto 1fr auto; }
+    #col { grid-template-rows: auto 1fr; }
     #bar { display: block; height: auto; padding: 0; overflow: visible; border-bottom: 1px solid var(--line); }
     #pnav { display: flex; align-items: center; gap: 4px; padding: 6px 8px; }
     #pnav button { width: 42px; height: 42px; border-radius: 12px; font-size: 22px; color: var(--dim); }
@@ -473,7 +425,8 @@
     .ph-count { margin-right: auto; }
     #ph-next, #ph-save, #ph-focus { height: 34px; }
     #ph-save { min-width: 0; }
-    #ph-focus { width: 34px; padding: 0; justify-content: center; }
+    #ph-focus { display: inline-flex; width: 34px; padding: 0; justify-content: center; }
+    #focus { display: none; }                          /* on a phone the Focus toggle sits next to Save instead */
     #ph-focus span { display: none; }                  /* icon only on a phone, so the header stays on one line */
     #ph-focus svg { width: 16px; height: 16px; }
     .gutter .ln { width: 44px; padding-right: 12px; }
@@ -519,10 +472,12 @@
   #fb-save { flex: none; padding: 4px 8px; border-radius: 99px; font-size: 12px; color: var(--green); white-space: nowrap; }
   #fb-save[data-state="dirty"], #fb-save[data-state="saving"] { color: var(--yellow); }
   #fb-save[data-state="err"] { color: #14151f; background: var(--pink); font-weight: 700; }
-  #fb-exit { flex: none; padding: 4px 12px; border-radius: 99px; border: 1px solid var(--line); font-size: 12px; color: var(--dim); }
-  #fb-exit:hover { color: var(--hi); border-color: var(--accent-line); }
+  #fb-focus { padding: 3px 12px 3px 4px; gap: 7px; }
+  #fb-focus .track { width: 28px; height: 17px; }
+  #fb-focus .track::after { width: 13px; height: 13px; }
+  #fb-focus[aria-checked="true"] .track::after { transform: translateX(11px); }
 
-  html.focus #top, html.focus #status, html.focus #activity, html.focus #sidebar, html.focus #tabs, html.focus #bar, html.focus #panel, html.focus #bnav,
+  html.focus #top, html.focus #sidebar, html.focus #bar, html.focus #bnav,
   html.focus #ref, html.focus #splitter, html.focus .prac-head, html.focus .prac-tabs, html.focus .gutter { display: none !important; }
   html.focus #app, html.focus #col { grid-template-rows: minmax(0, 1fr); }
   html.focus #scroll { font-size: 20px; }
@@ -534,6 +489,7 @@
     #fbar { gap: 8px; padding: 8px 10px 18px; }
     .fb-title { display: none; }
     #fbar .fb-seg { margin-right: auto; }
+    #fb-focus > span:not(.track) { display: inline; }   /* keep the label here (the header switches hide theirs on a phone) */
     html.focus .body { padding-top: 52px; }
     html.focus #ta { padding: 0 14px 0 14px; }
     html.focus #scroll { font-size: 18px; }
@@ -545,11 +501,7 @@
 <body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></symbol>
-  <symbol id="i-chev" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4"/></symbol>
-  <symbol id="i-x" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
-  <symbol id="i-panel" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M2 9.5h12"/></symbol>
   <symbol id="i-focus" viewBox="0 0 16 16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></symbol>
 </svg>
 
@@ -573,6 +525,7 @@
     <div class="bwrap">
       <button id="backup" class="switch" hidden aria-haspopup="menu" aria-expanded="false" title="Your sentences are stored in this browser. Download a backup now and then.">💾 <span>Backup</span></button>
       <div id="bmenu" role="menu" hidden>
+        <div id="bwhen"></div>
         <button role="menuitem" data-a="json"><b>Download backup</b><small>Everything in one .json file. Restore it here later, or in another browser.</small></button>
         <button role="menuitem" data-a="md"><b>Download all sentences</b><small>A readable list (.md) of everything you've written.</small></button>
         <button role="menuitem" data-a="txt"><b>Download this point</b><small>Just the point you're on, as a .txt file.</small></button>
@@ -581,17 +534,15 @@
       </div>
       <input type="file" id="restore" accept=".json,.txt,application/json,text/plain" multiple hidden>
     </div>
+    <button id="focus" class="switch" role="switch" aria-checked="false" title="Focus mode (Alt+Z): hide everything except the page you're writing on">
+      <span class="track"></span><span>Focus</span>
+    </button>
     <button id="gray" class="switch" role="switch" aria-checked="true" title="Grayscale mode (Alt+G): turn on when others might see your screen">
       <span class="track"></span><span>Grayscale</span>
     </button>
   </header>
 
   <div id="main">
-    <nav id="activity" aria-label="Activity bar">
-      <button id="act-files" class="on" title="Grammar list (Ctrl+B)" aria-label="Toggle grammar list"><svg class="ic"><use href="#i-list"/></svg></button>
-      <button id="act-search" title="Go to grammar point (Ctrl+P)" aria-label="Go to grammar point"><svg class="ic"><use href="#i-search"/></svg></button>
-    </nav>
-
     <aside id="sidebar">
       <div class="side-head"><h3>Grammar points</h3><span id="prog"></span></div>
       <div id="filterbox">
@@ -609,14 +560,12 @@
     </aside>
 
     <div id="col">
-      <div id="tabs" role="tablist"></div>
       <div id="bar">
         <div id="pnav">
           <button id="p-prev" aria-label="Previous grammar point">‹</button>
           <button id="p-title" aria-label="Choose a grammar point"></button>
           <button id="p-next" aria-label="Next grammar point">›</button>
         </div>
-        <div id="crumbs"></div>
         <div id="tools" hidden>
           <button class="tbtn" id="t-ref" aria-pressed="true" title="Show the grammar notes and example sentences (Ctrl+E)">Examples</button>
           <button class="tbtn" id="t-tr" aria-pressed="true" title="Show English translations (hover a sentence to peek when off)">Translations</button>
@@ -636,7 +585,7 @@
               <span class="ph-msg" id="ph-msg"></span>
               <button id="ph-next" hidden title="Jump to the next point you haven't finished (Alt+N)">Next point →</button>
               <button id="ph-save" data-state="clean" title="Save now (Ctrl+S)">✓ Saved</button>
-              <button id="ph-focus" aria-pressed="false" aria-label="Focus mode" title="Focus mode: hide everything except the page you're writing on (Alt+Z)"><svg class="ic"><use href="#i-focus"/></svg><span>Focus</span></button>
+              <button id="ph-focus" aria-pressed="false" aria-label="Focus mode" title="Focus mode: hide everything except the page you're writing on"><svg class="ic"><use href="#i-focus"/></svg><span>Focus</span></button>
             </div>
             <div class="prac-tabs" id="ptabs">
               <button data-m="write" class="on">✎ Write</button>
@@ -657,44 +606,11 @@
           </div>
           <span id="fb-count"></span>
           <button id="fb-save" data-state="clean" title="Save now (Ctrl+S). It also saves automatically.">✓ Saved</button>
-          <button id="fb-exit" title="Leave focus mode (Alt+Z)">Exit focus</button>
-        </div>
-        <div id="welcome">
-          <div class="mark">文</div>
-          <h1>Pick a grammar point to start</h1>
-          <table>
-            <tr><td><kbd>Ctrl</kbd> + <kbd>P</kbd></td><td>Jump to any grammar point</td></tr>
-            <tr><td><kbd>Alt</kbd> + <kbd>N</kbd></td><td>Next point you haven't finished</td></tr>
-            <tr><td><kbd>Alt</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></td><td>Previous / next point</td></tr>
-            <tr><td><kbd>Ctrl</kbd> + <kbd>S</kbd></td><td>Save now (it also autosaves)</td></tr>
-            <tr><td><kbd>Ctrl</kbd> + <kbd>E</kbd></td><td>Show / hide the examples</td></tr>
-            <tr><td><kbd>Alt</kbd> + <kbd>Z</kbd></td><td>Focus mode: just the page you write on</td></tr>
-            <tr><td><kbd>Alt</kbd> + <kbd>G</kbd></td><td>Grayscale on / off</td></tr>
-            <tr><td><kbd>Ctrl</kbd> + <kbd>B</kbd> / <kbd>J</kbd></td><td>Toggle the list / the save log</td></tr>
-          </table>
+          <button id="fb-focus" class="switch" role="switch" aria-checked="true" title="Turn focus mode off (Alt+Z)"><span class="track"></span><span>Focus</span></button>
         </div>
       </div>
-      <section id="panel" aria-label="Output" hidden>
-        <header><span>Save log</span><span class="grow"></span><button id="panel-x" title="Close (Ctrl+J)" aria-label="Close log"><svg class="ic"><use href="#i-x"/></svg></button></header>
-        <div id="log" role="log"></div>
-      </section>
     </div>
   </div>
-
-  <footer id="status">
-    <div>
-      <span class="item" id="savestate">Loading…</span>
-      <span class="item" id="conn"></span>
-      <button class="item" id="sstate" hidden title="Sync status"></button>
-      <button class="item" id="bstate" hidden title="Download a backup of your sentences"></button>
-    </div>
-    <div>
-      <span class="item" id="pos"></span>
-      <span class="item" id="total"></span>
-      <span class="item">UTF-8</span>
-      <button class="item" id="panel-toggle" title="Show the save log (Ctrl+J)" aria-label="Toggle save log"><svg class="ic"><use href="#i-panel"/></svg></button>
-    </div>
-  </footer>
 
   <nav id="bnav" aria-label="Screens">
     <button data-v="list"><span class="g">☰</span>List</button>
@@ -737,7 +653,6 @@ python3 server.py</pre>
   const count = t => (t || '').split('\n').filter(l => l.trim().length >= 3).length;
   const stateOf = n => n >= GOAL ? 'done' : n > 0 ? 'wip' : 'todo';
   document.documentElement.style.setProperty('--goal', GOAL);
-  const clock = () => new Date().toLocaleTimeString('en-GB');
   const KANJI_CLASS = '\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff々〆〇ヶ';   // same set of characters as KANJI in furigana.py
   const KANJI = new RegExp(`[${KANJI_CLASS}]`);
   const KANJI_RUNS = new RegExp(`[${KANJI_CLASS}]+|[^${KANJI_CLASS}]+`, 'g');
@@ -754,7 +669,7 @@ python3 server.py</pre>
   const texts = {}, saved = {}, savedAt = {}, view = {};
   const dirty = new Set();
   const timers = {}, chain = {};
-  let open = [], active = null;
+  let active = null;
   let saving = 0, saveError = false;
   // 'server': server.py saves real files in ./sentences. 'browser': no server, so sentences are kept in this browser
   // (localStorage) with Backup / Restore. The page decides at load time, so one index.html does both.
@@ -766,7 +681,7 @@ python3 server.py</pre>
   const scroller = $('#scroll');
 
   // what the user chose, independent of auto-hiding on narrow windows
-  const prefs = { side: true, panel: false, ref: true, tr: true, cloze: false, furi: 'hover', split: null, view: 'list', focus: false };
+  const prefs = { ref: true, tr: true, cloze: false, furi: 'hover', split: null, view: 'list', focus: false };
   const FURI = ['hover', 'always', 'off'];
 
   /* ---------- grayscale ---------- */
@@ -779,28 +694,15 @@ python3 server.py</pre>
   grayBtn.addEventListener('click', () => setGray(!document.documentElement.classList.contains('gray')));
   setGray(document.documentElement.classList.contains('gray'), false);
 
-  /* ---------- log / status ---------- */
-  function log(msg, kind = '') {
-    const el = $('#log');
-    const d = document.createElement('div');
-    d.innerHTML = `<span class="t">[${clock()}]</span> <span class="${kind}">${esc(msg)}</span>`;
-    el.appendChild(d);
-    while (el.children.length > 200) el.firstChild.remove();
-    el.scrollTop = el.scrollHeight;
-  }
+  /* ---------- save state ---------- */
+  const saveErrText = () => MODE === 'server'
+    ? 'Not saved to the folder yet. Your text is kept in this browser, and it keeps retrying.'
+    : 'Couldn\'t save in this browser. Use Backup → Download to keep your work.';
 
   function refreshStatus() {
-    const el = $('#savestate');
-    let cls = 'ok', txt = '✓ All changes saved';
-    if (saveError) { cls = 'err'; txt = MODE === 'server' ? '⚠ Not saved to the folder — draft kept in this browser' : '⚠ Couldn\'t save in this browser — use Backup → Download'; }
-    else if (saving) { cls = 'dirty'; txt = '↻ Saving…'; }
-    else if (dirty.size) { cls = 'dirty'; txt = '● Unsaved changes'; }
-    el.className = 'item ' + cls; el.textContent = txt;
-
-    // the Save button in the practice header shows the state of the file you're writing in
+    // the Save button above your sentences shows the state of the point you're writing in
     const b = $('#ph-save');
     if (active == null) return;
-    const g = byId.get(active);
     const state = saveError ? 'err' : saving ? 'saving' : dirty.has(active) ? 'dirty' : 'clean';
     b.dataset.state = state;
     b.textContent = { err: '⚠ Retry save', saving: 'Saving…', dirty: 'Save', clean: '✓ Saved' }[state];
@@ -808,7 +710,10 @@ python3 server.py</pre>
       ? `Saved to ${where(active)} at ${new Date(savedAt[active]).toLocaleTimeString('en-GB')}. It saves automatically; click to save again, or press Ctrl+S.`
       : `Save to ${where(active)} now (Ctrl+S). It also saves automatically a moment after you stop typing.`;
 
-    // focus mode hides the status bar, so the focus bar repeats the save state (and stays visible if saving fails)
+    const msg = $('#ph-msg');                  // a failed save is explained in the header line (and as a toast, see failed())
+    if ((state === 'err') !== msg.classList.contains('err')) { msg.classList.toggle('err', state === 'err'); refreshMeter(); }
+
+    // focus mode hides the header, so the focus bar repeats the save state (and stays visible if saving fails)
     const f = $('#fb-save');
     f.dataset.state = state;
     f.textContent = { err: '⚠ Not saved. Retry', saving: 'Saving…', dirty: '● Unsaved', clean: '✓ Saved' }[state];
@@ -856,7 +761,7 @@ python3 server.py</pre>
     c.textContent = n > GOAL ? `${GOAL}/${GOAL} +${n - GOAL}` : `${n}/${GOAL}`;
     c.classList.toggle('done', n >= GOAL);
     const fc = $('#fb-count'); fc.textContent = active == null ? '' : c.textContent; fc.classList.toggle('done', n >= GOAL);
-    $('#ph-msg').textContent = (MSGS.filter(([from]) => n >= from).pop() || MSGS[0])[1];
+    $('#ph-msg').textContent = saveError ? saveErrText() : (MSGS.filter(([from]) => n >= from).pop() || MSGS[0])[1];
     $('#ph-next').hidden = !(n >= GOAL && nextTodoId() != null);
     $('#bn-count').textContent = active == null ? '' : ` ${Math.min(n, GOAL)}/${GOAL}`;
     refreshReviewBadge();
@@ -864,13 +769,11 @@ python3 server.py</pre>
 
   function refreshTotals() {
     const done = items.filter(g => count(texts[g.id]) >= GOAL).length;
-    const sentences = items.reduce((n, g) => n + count(texts[g.id]), 0);
     const toward = items.reduce((n, g) => n + Math.min(GOAL, count(texts[g.id])), 0);
     const cap = items.length * GOAL;
     $('#prog').textContent = `${done}/${items.length}`;
     $('#overall-text').textContent = `${toward.toLocaleString()} / ${cap.toLocaleString()} sentences · ${done} done`;
     $('#overall-fill').style.width = (cap ? toward / cap * 100 : 0) + '%';
-    $('#total').textContent = `${sentences.toLocaleString()} sentence${sentences === 1 ? '' : 's'} written`;
     const tally = { todo: 0, wip: 0, done: 0 };
     items.forEach(g => tally[stateOf(count(texts[g.id]))]++);
     document.querySelectorAll('#fchips button[data-f]').forEach(b => { const k = b.dataset.f; if (k) $('b', b).textContent = tally[k]; });
@@ -938,33 +841,6 @@ python3 server.py</pre>
   }
 
   /* ---------- tabs ---------- */
-  function renderTabs() {
-    const bar = $('#tabs');
-    bar.innerHTML = '';
-    for (const id of open) {
-      const g = byId.get(id);
-      const t = document.createElement('div');
-      t.className = 'tab' + (id === active ? ' on' : '') + (dirty.has(id) ? ' dirty' : '');
-      t.setAttribute('role', 'tab');
-      t.title = where(id);
-      t.innerHTML = `<span class="tno">${pad3(g.id)}</span><span>${esc(g.title)}</span>` +
-        `<button class="x" aria-label="Close ${esc(g.title)}"><svg class="ic"><use href="#i-x"/></svg></button><i class="dot"></i>`;
-      t.addEventListener('click', e => e.target.closest('.x') ? closeTab(id) : activate(id));
-      t.addEventListener('auxclick', e => { if (e.button === 1) closeTab(id); });
-      bar.appendChild(t);
-    }
-    const on = bar.querySelector('.tab.on');
-    if (on) bar.scrollLeft = Math.max(0, on.offsetLeft - 40);
-    renderCrumbs();
-  }
-
-  function renderCrumbs() {
-    const c = $('#crumbs');
-    refreshPhoneBar();
-    if (active == null) { c.innerHTML = ''; return; }
-    c.innerHTML = `${MODE === 'server' ? 'sentences' : 'this browser'} <svg class="ic"><use href="#i-chev"/></svg> <b>${esc(byId.get(active).file)}</b>`;
-  }
-
   /* ---------- phone mode ---------- */
   // On a narrow screen the app shows one screen at a time: List, Examples or Write (switched from a bottom bar).
   const phoneMQ = matchMedia('(max-width: 720px)');
@@ -986,8 +862,7 @@ python3 server.py</pre>
 
   function applyLayoutMode() {
     document.documentElement.classList.toggle('phone', isPhone());
-    if (isPhone()) { $('#sidebar').hidden = false; setView(screenName, false); }
-    else setSide(prefs.side, false);
+    if (isPhone()) setView(screenName, false);
     fitViewport();
   }
 
@@ -1029,7 +904,7 @@ python3 server.py</pre>
     e.target.closest('.ex')?.classList.toggle('peek');
   });
 
-  function persistSession() { store.set('gp2:session', { open, active, prefs }); }
+  function persistSession() { store.set('gp2:session', { active, prefs }); }
 
   function rememberView() {
     if (active == null || !ta) return;
@@ -1040,31 +915,17 @@ python3 server.py</pre>
     if (!byId.has(id)) return;
     rememberView();
     active = id;
-    if (!open.includes(id)) open.push(id);
     persistSession();
-    renderTabs();
     renderEditor();
     updateAllRows();
     refreshTotals();
     refreshStatus();
     refTop = 0;
+    refreshPhoneBar();
     // on a phone, picking a point from the list opens its examples; from the other screens you stay where you are
     if (isPhone()) { setView(screen || (screenName === 'list' ? 'examples' : screenName)); focus = false; }
     if (focus && ta) ta.focus({ preventScroll: true });
     rows.get(id)?.scrollIntoView({ block: 'nearest' });
-  }
-
-  function closeTab(id) {
-    if (dirty.has(id)) save(id);
-    const i = open.indexOf(id);
-    if (i < 0) return;
-    rememberView();
-    open.splice(i, 1);
-    if (id === active) {
-      const next = open[i] ?? open[i - 1] ?? null;
-      if (next == null) { active = null; ta = null; persistSession(); renderTabs(); renderEditor(); updateAllRows(); refreshTotals(); }
-      else { active = null; activate(next); }
-    } else { persistSession(); renderTabs(); }
   }
 
   /* ---------- furigana ---------- */
@@ -1084,7 +945,7 @@ python3 server.py</pre>
         need.forEach((t, i) => furiCache.set(t, results[i]));
         furiDownAt = 0;
       } catch (e) {
-        if (!furiDownAt) log(`furigana unavailable (${e.message}). Is ./vendor intact and server.py running?`, 'err');
+        if (!furiDownAt) console.warn(`furigana unavailable (${e.message}). Is ./vendor intact and server.py running?`);
         furiDownAt = Date.now();
       }
     }
@@ -1161,12 +1022,12 @@ python3 server.py</pre>
 
   /* ---------- practice editor ---------- */
   function renderEditor() {
-    const split = $('#split'), welcome = $('#welcome');
+    const split = $('#split');
     hidePop();
     applyFocus();                                  // focus mode only applies while a point is open
     refreshFocusBar();
-    if (active == null) { split.hidden = true; welcome.hidden = false; $('#tools').hidden = true; scroller.innerHTML = ''; $('#ref').innerHTML = ''; ta = null; $('#pos').textContent = ''; return; }
-    welcome.hidden = true; split.hidden = false; $('#tools').hidden = false;
+    if (active == null) { split.hidden = true; $('#tools').hidden = true; scroller.innerHTML = ''; $('#ref').innerHTML = ''; ta = null; return; }
+    split.hidden = false; $('#tools').hidden = false;
 
     const g = byId.get(active);
     renderRef(g);
@@ -1229,13 +1090,11 @@ python3 server.py</pre>
     if (!ta) return;
     const upTo = ta.value.slice(0, ta.selectionStart);
     const line = upTo.split('\n').length - 1;
-    const col = upTo.length - (upTo.lastIndexOf('\n') + 1) + 1;
     gutterEl.children[curLine]?.classList.remove('on');
     curLine = line;
     gutterEl.children[line]?.classList.add('on');
     curEl.style.top = line * LH + 'px';
     curEl.style.visibility = document.activeElement === ta ? 'visible' : 'hidden';
-    $('#pos').textContent = `Ln ${line + 1}, Col ${col}`;
   }
 
   function onInput() {
@@ -1249,7 +1108,6 @@ python3 server.py</pre>
     autosize(); renderGutter(); onCursor();
     updateRow(id); refreshTotals(); refreshStatus();
     if (before < GOAL && count(ta.value) >= GOAL) celebrate(id);
-    const tab = $('#tabs .tab.on'); if (tab) tab.classList.add('dirty');
     clearTimeout(timers[id]);
     timers[id] = setTimeout(() => save(id), MODE === 'browser' ? 250 : 700);
   }
@@ -1303,12 +1161,11 @@ python3 server.py</pre>
     const pips = $('#pips'); pips.classList.remove('done'); void pips.offsetWidth; pips.classList.add('done');
     const row = rows.get(id); row.classList.remove('pulse'); void row.offsetWidth; row.classList.add('pulse');
     const left = items.filter(x => count(texts[x.id]) < GOAL).length;
-    log(`goal reached: ${g.title} (${GOAL}/${GOAL}), ${left} point${left === 1 ? '' : 's'} to go`, 'ok');
     if (left) toast(`🎉 <b>${GOAL} sentences</b> for ${esc(g.title)}! ${left} point${left === 1 ? '' : 's'} to go.`, 'Next point →', gotoNextTodo);
     else toast(`🏆 <b>That's all of them!</b> Every grammar point has ${GOAL} sentences.`);
   }
   $('#ph-next').addEventListener('click', gotoNextTodo);
-  const saveByButton = () => { saveAll().then(() => { log('saved by button', 'info'); ta?.focus(); }); };
+  const saveByButton = () => { saveAll().then(() => ta?.focus()); };
   $('#ph-save').addEventListener('click', saveByButton);
   $('#fb-save').addEventListener('click', saveByButton);
   $('#fchips').addEventListener('click', e => { const b = e.target.closest('button[data-f]'); if (b) { $('#filter').value = b.dataset.f; applyFilter(); } });
@@ -1401,15 +1258,11 @@ python3 server.py</pre>
     saved[id] = text;
     savedAt[id] = Date.now();
     if (texts[id] === text) { dirty.delete(id); store.del('gp2:draft:' + id); }
-    if (saveError) log(MODE === 'server' ? 'server reachable again' : 'saving works again', 'info');
     saveError = false;
-    log(`saved  ${where(id)}  (${count(text)} sentence${count(text) === 1 ? '' : 's'})`, 'ok');
   }
 
   function failed(id, e) {
-    if (!saveError) log(MODE === 'server'
-      ? `FAILED to save ${byId.get(id).file}: ${e.message}. Is server.py still running? Retrying every 5s; your text is kept in this browser.`
-      : `FAILED to save ${byId.get(id).file}: ${e.message}. This browser may be blocking storage. Use Backup → Download to keep your work.`, 'err');
+    if (!saveError) { console.warn(`couldn't save ${byId.get(id).file}: ${e.message}`); toast('⚠ ' + saveErrText()); }
     saveError = true;
   }
 
@@ -1430,7 +1283,7 @@ python3 server.py</pre>
     finally { saving--; finishSave(id); }
   }
 
-  function finishSave(id) { refreshStatus(); updateRow(id); renderTabs(); }
+  function finishSave(id) { refreshStatus(); updateRow(id); }
   const saveAll = (keepalive = false) => Promise.all([...dirty].map(id => save(id, keepalive)));
 
   /* ---------- quick open ---------- */
@@ -1464,19 +1317,6 @@ python3 server.py</pre>
   qo.addEventListener('mousedown', e => { if (e.target === qo) closeQO(); });
 
   /* ---------- layout toggles ---------- */
-  function setSide(show, remember = true) {
-    $('#sidebar').hidden = !show;
-    $('#act-files').classList.toggle('on', show);
-    if (remember) { prefs.side = show; persistSession(); }
-    autosize();
-  }
-  function setPanel(show, remember = true) {
-    $('#panel').hidden = !show;
-    if (remember) { prefs.panel = show; persistSession(); }
-    autosize();
-  }
-  const toggleSide = () => setSide($('#sidebar').hidden);
-  const togglePanel = () => setPanel($('#panel').hidden);
   function step(d) {
     const i = items.findIndex(g => g.id === active);
     const n = items[Math.max(0, Math.min(items.length - 1, (i < 0 ? 0 : i + d)))];
@@ -1484,7 +1324,7 @@ python3 server.py</pre>
   }
 
   /* ---------- focus mode ---------- */
-  // Hides everything except the page you write on. A small bar (Write / Readings, save state, Exit) fades away while you type
+  // Hides everything except the page you write on. A small bar (Write / Readings, save state, the Focus switch) fades away while you type
   // and comes back when you move the mouse or tap. It only applies while a grammar point is open.
   const root = document.documentElement;
   const isFocus = () => !!prefs.focus && active != null;
@@ -1494,6 +1334,8 @@ python3 server.py</pre>
     root.classList.toggle('focus', on);
     if (!on) root.classList.remove('typing');
     $('#ph-focus').setAttribute('aria-pressed', String(on));
+    $('#focus').setAttribute('aria-checked', String(on));
+    $('#fb-focus').setAttribute('aria-checked', String(on));
     if (on && $('#prac').dataset.mode === 'review') setPracMode('write');   // corrections aren't part of the focus page
     autosize();
   }
@@ -1522,7 +1364,8 @@ python3 server.py</pre>
   }, { passive: true });
   addEventListener('pointerdown', () => root.classList.remove('typing'), { passive: true });
   $('#ph-focus').addEventListener('click', () => setFocus(true));
-  $('#fb-exit').addEventListener('click', () => setFocus(false));
+  $('#focus').addEventListener('click', () => setFocus(!prefs.focus));
+  $('#fb-focus').addEventListener('click', () => setFocus(false));
 
   /* ---------- examples pane: toggles, layout, splitter ---------- */
   const split = $('#split'), refEl = $('#ref'), splitter = $('#splitter');
@@ -1581,22 +1424,13 @@ python3 server.py</pre>
   splitter.addEventListener('dblclick', () => { prefs.split = null; persistSession(); applySplit(); });
 
   $('#filter').addEventListener('input', applyFilter);
-  $('#act-files').addEventListener('click', () => toggleSide());
-  $('#act-search').addEventListener('click', openQO);
-  $('#panel-x').addEventListener('click', () => setPanel(false));
-  $('#panel-toggle').addEventListener('click', () => togglePanel());
 
   addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
-    if (isFocus() && mod && !e.shiftKey && !e.altKey && 'bej'.includes(k) && k.length === 1) {   // list / examples / log: leave focus mode, then show it
-      e.preventDefault(); setFocus(false);
-      if (k === 'b') setSide(true); else if (k === 'e') setPref('ref', true); else setPanel(true);
-    }
+    if (isFocus() && mod && !e.shiftKey && !e.altKey && k === 'e') { e.preventDefault(); setFocus(false); setPref('ref', true); }   // examples live outside focus mode
     else if (e.altKey && !mod && e.code === 'KeyZ') { e.preventDefault(); setFocus(!prefs.focus); }
-    else if (mod && !e.shiftKey && !e.altKey && k === 's') { e.preventDefault(); saveAll().then(() => log('manual save complete', 'info')); }
+    else if (mod && !e.shiftKey && !e.altKey && k === 's') { e.preventDefault(); saveAll(); }
     else if (mod && !e.shiftKey && k === 'p') { e.preventDefault(); openQO(); }
-    else if (mod && !e.shiftKey && k === 'b') { e.preventDefault(); toggleSide(); }
-    else if (mod && !e.shiftKey && k === 'j') { e.preventDefault(); togglePanel(); }
     else if (mod && !e.shiftKey && k === 'e') { e.preventDefault(); setPref('ref', !prefs.ref); }
     else if (e.altKey && !mod && e.code === 'KeyG') { e.preventDefault(); grayBtn.click(); }
     else if (e.altKey && !mod && e.code === 'KeyN') { e.preventDefault(); gotoNextTodo(); }
@@ -1847,14 +1681,16 @@ python3 server.py</pre>
   const rel = ms => { const m = Math.round((Date.now() - ms) / 60000); return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
 
   function refreshBackup() {
-    const el = $('#bstate');
-    el.hidden = MODE !== 'browser';
     if (MODE !== 'browser') return;
     let b = null; try { b = JSON.parse(lsGet(LS_BACKUP) || 'null'); } catch {}
     const total = totalSentences();
-    el.textContent = b ? `💾 Backup: ${rel(b.at)}` : '💾 Backup: never';
     // nudge once there's real work that isn't in a backup yet
-    el.classList.toggle('warn', total > 0 && (!b || total - (b.n || 0) >= 20 || (total > (b.n || 0) && Date.now() - b.at > 7 * 864e5)));
+    const warn = total > 0 && (!b || total - (b.n || 0) >= 20 || (total > (b.n || 0) && Date.now() - b.at > 7 * 864e5));
+    const when = b ? `Last backup: ${rel(b.at)}` : 'No backup yet';
+    $('#backup').classList.toggle('warn', warn);
+    $('#backup').title = warn ? `${when}. Download one to keep your sentences safe.` : `${when}. Your sentences are stored in this browser; download a backup now and then.`;
+    $('#bwhen').textContent = warn ? `${when}. Worth downloading one soon.` : when;
+    $('#bwhen').classList.toggle('warn', warn);
   }
   function noteBackup() { try { localStorage.setItem(LS_BACKUP, JSON.stringify({ at: Date.now(), n: totalSentences() })); } catch {} refreshBackup(); }
 
@@ -1881,7 +1717,6 @@ python3 server.py</pre>
   const closeMenu = () => { bmenu.hidden = true; bbtn.setAttribute('aria-expanded', 'false'); $('#smenu').hidden = true; $('#sync').setAttribute('aria-expanded', 'false'); };
   const openMenu = () => { bmenu.hidden = false; bbtn.setAttribute('aria-expanded', 'true'); };
   bbtn.addEventListener('click', e => { e.stopPropagation(); bmenu.hidden ? openMenu() : closeMenu(); });
-  $('#bstate').addEventListener('click', e => { e.stopPropagation(); openMenu(); });
   document.addEventListener('click', closeMenu);
   addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
   bmenu.addEventListener('click', e => {
@@ -1945,10 +1780,9 @@ python3 server.py</pre>
       }
       localStorage.setItem(LS_DAYS, JSON.stringify(ddev));
     } catch (err) { failed((changed[0] || revAdds[0])[0], err); refreshStatus(); toast('Couldn\'t restore: this browser is blocking storage.'); return; }
-    updateAllRows(); refreshTotals(); applyFilter(); renderTabs(); refreshStatus();
+    updateAllRows(); refreshTotals(); applyFilter(); refreshStatus();
     if (active != null) renderEditor();
     noteBackup(); syncSoon();
-    log(`restored ${what}`, 'ok');
     toast(`✓ Restored ${what}.`);
   });
 
@@ -2129,10 +1963,8 @@ python3 server.py</pre>
     const state = sync.on ? sync.state : 'off';
     sbtn.dataset.state = state;
     const label = { ok: `Synced ${rel(sync.lastOk)}`, syncing: 'Syncing…', offline: 'Offline. Will retry', error: sync.msg || 'Sync problem', off: 'Sync is off' }[state];
-    const el = $('#sstate');
-    el.hidden = !(sync.avail && sync.on);
-    el.textContent = '☁ ' + label;
-    el.classList.toggle('warn', state === 'error' || state === 'offline');
+    sbtn.title = sync.on ? '☁ ' + label : 'Keep your sentences in sync across your devices';
+    $('span', sbtn).textContent = state === 'error' ? 'Sync problem' : state === 'offline' ? 'Offline' : 'Sync';
     const stat = $('#sstat');
     if (stat) { stat.textContent = '☁ ' + label; stat.classList.toggle('bad', state === 'error' || state === 'offline'); }
   }
@@ -2197,7 +2029,6 @@ python3 server.py</pre>
   });
   smenu.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'scode') $('button[data-s="join"]', smenu).click(); });
   sbtn.addEventListener('click', e => { e.stopPropagation(); if (smenu.hidden) { closeMenu(); renderSyncMenu(); smenu.hidden = false; sbtn.setAttribute('aria-expanded', 'true'); } else closeMenu(); });
-  $('#sstate').addEventListener('click', e => { e.stopPropagation(); sbtn.click(); });
 
   document.addEventListener('visibilitychange', () => {
     if (!sync.on) return;
@@ -2230,7 +2061,7 @@ python3 server.py</pre>
     catch {
       MODE = 'browser';                                               // no server: sentences live in this browser
       try { data = await browserBackend.load(); }
-      catch (e) { console.error(e); $('#offline').hidden = false; $('#savestate').textContent = '✗ Could not load the grammar data'; return; }
+      catch (e) { console.error(e); $('#offline').hidden = false; return; }
     }
     items = data.grammar;
     days = data.days; dayKey = data.day;
@@ -2251,35 +2082,25 @@ python3 server.py</pre>
     const sess = store.get('gp2:session', null);
     const narrow = innerWidth < 720;
     buildExplorer();
-    const nEx = items.reduce((n, x) => n + x.examples.length, 0);
-    if (MODE === 'server') {
-      $('#conn').textContent = '⚡ ' + location.host;
-      log(`workspace ready — ${items.length} grammar points, ${nEx} example sentences, files in ./sentences/`, 'info');
-    } else {
-      $('#conn').textContent = '💾 Saved in this browser';
-      $('#conn').title = 'No server is running, so your sentences are kept in this browser. Use Backup to download a copy.';
+    if (MODE === 'browser') {                                         // no server: sentences are kept in this browser, with Backup
       $('#backup').hidden = false;
       $('#t-furi').title = 'Furigana on the example sentences (hover a word). Cycle Hover / Always / Off. Your own lines get furigana when the optional server is running.';
-      log(`workspace ready — ${items.length} grammar points, ${nEx} example sentences. Saved in this browser; use Backup to keep a copy.`, 'info');
       try { navigator.storage?.persist?.(); } catch {}                // ask the browser not to evict our storage
       initSync();                                                     // shows ☁ Sync only if this site has the sync API
     }
     Object.assign(prefs, sess?.prefs);
     screenName = ['list', 'examples', 'write'].includes(prefs.view) ? prefs.view : 'list';
     applyLayoutMode();                                                // phone: one screen at a time; otherwise the side-by-side layout
-    setPanel(prefs.panel, false);
     applyRefPrefs();
 
-    open = sess ? sess.open.filter(id => byId.has(id)) : [items[0].id];
-    const start = sess && byId.has(sess.active) ? sess.active : (open[0] ?? null);
-    renderTabs();
+    const start = sess && byId.has(sess.active) ? sess.active : (items[0]?.id ?? null);
     updateAllRows();
     refreshTotals();
     refreshStatus();
     if (start != null) activate(start, { focus: !narrow, screen: screenName });
     else renderEditor();
 
-    if (restored) { log(`restored ${restored} unsaved draft${restored > 1 ? 's' : ''} from this browser — saving to folder`, 'info'); saveAll(); }
+    if (restored) { toast(`Recovered ${restored} unsaved draft${restored > 1 ? 's' : ''} from this browser and saved ${restored > 1 ? 'them' : 'it'} to the folder.`); saveAll(); }
   }
 
   boot();
